@@ -13,6 +13,8 @@ import astroExpressiveCode from "astro-expressive-code";
 
 // https://astro.build/config
 export default defineConfig({
+  site: "https://KevinBian107.github.io",
+  base: "/MOSAIC-website",
   vite: {
     plugins: [tailwindcss()],
   },
