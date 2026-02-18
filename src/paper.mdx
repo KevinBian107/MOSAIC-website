@@ -78,7 +78,7 @@ The coarsened hierarchies are serialized into token sequences using one of four 
 
 - **HDT** (Hierarchical Depth Tokenization): Encodes the full tree structure of the hierarchy using depth-first traversal. Each token carries depth information, making the hierarchical nesting explicit.
 
-- **HDTC** (Hierarchical Depth Tokenization with Children): The most expressive scheme, extending HDT with explicit child-count tokens at each internal node. This gives the model complete information about the branching structure of the hierarchy.
+- **HDTC** (Hierarchical Depth Tokenization with Composition): The most expressive scheme, extending HDT with explicit compositional tokens at each internal node. This gives the model complete information about the branching structure of the hierarchy.
 
 <Figure>
   <Picture slot="figure" src={tokenization} alt="Comparison of four tokenization schemes: SENT, H-SENT, HDT, and HDTC" />
