@@ -13,7 +13,7 @@ links:
   - name: Code
     url: https://github.com/KevinBian107/MOSAIC
     icon: ri:github-line
-theme: device
+theme: light
 favicon: favicon.svg
 description: "MOSAIC: Compositional Abstraction for Autoregressive Molecular Generation"
 ---
@@ -21,8 +21,6 @@ description: "MOSAIC: Compositional Abstraction for Autoregressive Molecular Gen
 import HighlightedSection from "./components/HighlightedSection.astro";
 import Figure from "./components/Figure.astro";
 import Picture from "./components/Picture.astro";
-import Wide from "./components/Wide.astro";
-
 import pipelineOverview from "./assets/pipeline_overview.png";
 import coarsening from "./assets/coarsening.png";
 import tokenization from "./assets/tokenization.png";
@@ -39,23 +37,19 @@ Autoregressive models for molecular graph generation typically operate on flatte
 
 MOSAIC operates through a three-stage pipeline. First, molecular graphs are recursively coarsened into multi-level hierarchies where atoms are grouped into structurally meaningful clusters. Second, these hierarchies are serialized into structured token sequences that preserve parent-child relationships and inter-cluster connectivity. Third, a Transformer decoder is trained to autoregressively generate these structured sequences, enabling the model to compose molecules from coarse structure down to fine-grained atomic detail.
 
-<Wide>
-  <Figure>
-    <Picture slot="figure" src={pipelineOverview} alt="MOSAIC pipeline overview showing the three stages: hierarchical coarsening, structured tokenization, and autoregressive generation" />
-    <Fragment slot="caption">**MOSAIC pipeline overview.** A molecular graph (camptothecin) is hierarchically coarsened into multi-level clusters, tokenized into a structured sequence encoding the hierarchy, and generated autoregressively by a Transformer decoder.</Fragment>
-  </Figure>
-</Wide>
+<Figure>
+  <Picture slot="figure" src={pipelineOverview} alt="MOSAIC pipeline overview showing the three stages: hierarchical coarsening, structured tokenization, and autoregressive generation" />
+  <Fragment slot="caption">**MOSAIC pipeline overview.** A molecular graph (camptothecin) is hierarchically coarsened into multi-level clusters, tokenized into a structured sequence encoding the hierarchy, and generated autoregressively by a Transformer decoder.</Fragment>
+</Figure>
 
 ## Generation Demo
 
 The following animation shows MOSAIC's autoregressive generation process, where the model builds a molecule token-by-token, progressively assembling the hierarchical structure from coarse partitions down to individual atoms and bonds.
 
-<Wide>
-  <Figure>
-    <img slot="figure" src={`${import.meta.env.BASE_URL}demo.gif`} alt="Animated demonstration of MOSAIC's autoregressive molecular generation process" style="width: 100%; border-radius: 0.5rem;" />
-    <Fragment slot="caption">**Autoregressive generation demo.** MOSAIC generates a molecule by sequentially predicting tokens that encode hierarchical structure, atom types, and bond connectivity.</Fragment>
-  </Figure>
-</Wide>
+<Figure>
+  <img slot="figure" src={new URL("demo.gif", import.meta.env.SITE + import.meta.env.BASE_URL + "/").pathname} alt="Animated demonstration of MOSAIC's autoregressive molecular generation process" style="width: 100%; border-radius: 0.5rem;" />
+  <Fragment slot="caption">**Autoregressive generation demo.** MOSAIC generates a molecule by sequentially predicting tokens that encode hierarchical structure, atom types, and bond connectivity.</Fragment>
+</Figure>
 
 ## Coarsening Strategies
 
@@ -69,12 +63,10 @@ MOSAIC supports multiple graph coarsening strategies that recursively partition 
 
 - **Motif-aware + Functional Group (MC+FG)**: Extends motif-aware coarsening with an expanded library of functional group patterns, providing finer-grained control over which substructures are preserved during coarsening.
 
-<Wide>
-  <Figure>
-    <Picture slot="figure" src={coarsening} alt="Comparison of coarsening strategies: Spectral, HAC, Motif-aware Spectral, and Motif-aware HAC" />
-    <Fragment slot="caption">**Coarsening strategies.** Different approaches to recursively partitioning a molecular graph. Motif-aware variants (right) preserve chemically meaningful substructures like rings and functional groups as intact clusters.</Fragment>
-  </Figure>
-</Wide>
+<Figure>
+  <Picture slot="figure" src={coarsening} alt="Comparison of coarsening strategies: Spectral, HAC, Motif-aware Spectral, and Motif-aware HAC" />
+  <Fragment slot="caption">**Coarsening strategies.** Different approaches to recursively partitioning a molecular graph. Motif-aware variants (right) preserve chemically meaningful substructures like rings and functional groups as intact clusters.</Fragment>
+</Figure>
 
 ## Tokenization Schemes
 
@@ -88,12 +80,10 @@ The coarsened hierarchies are serialized into token sequences using one of four 
 
 - **HDTC** (Hierarchical Depth Tokenization with Children): The most expressive scheme, extending HDT with explicit child-count tokens at each internal node. This gives the model complete information about the branching structure of the hierarchy.
 
-<Wide>
-  <Figure>
-    <Picture slot="figure" src={tokenization} alt="Comparison of four tokenization schemes: SENT, H-SENT, HDT, and HDTC" />
-    <Fragment slot="caption">**Tokenization schemes.** From left to right: increasing hierarchical expressiveness. SENT provides a flat baseline, while H-SENT, HDT, and HDTC progressively encode more structural information about the molecular hierarchy.</Fragment>
-  </Figure>
-</Wide>
+<Figure>
+  <Picture slot="figure" src={tokenization} alt="Comparison of four tokenization schemes: SENT, H-SENT, HDT, and HDTC" />
+  <Fragment slot="caption">**Tokenization schemes.** From left to right: increasing hierarchical expressiveness. SENT provides a flat baseline, while H-SENT, HDT, and HDTC progressively encode more structural information about the molecular hierarchy.</Fragment>
+</Figure>
 
 ## BibTeX Citation
 
