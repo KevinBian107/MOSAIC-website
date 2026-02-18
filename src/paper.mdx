@@ -72,7 +72,7 @@ MOSAIC supports multiple graph coarsening strategies that recursively partition 
 
 The coarsened hierarchies are serialized into token sequences using one of four tokenization schemes, each capturing increasing levels of hierarchical information:
 
-- **SENT** (Sequential Edge-Node Tokenization): A flat baseline that serializes atom-bond sequences without hierarchy. Serves as the non-hierarchical reference point.
+- **SENT** (Segmented Eulerian Neighborhood Trails): A flat baseline that serializes atom-bond sequences without hierarchy. Serves as the non-hierarchical reference point.
 
 - **H-SENT** (Hierarchical SENT): Extends SENT by encoding multi-level partition structure. Tokens include partition boundaries and parent-child relationships, enabling the model to learn coarse-to-fine generation.
 
