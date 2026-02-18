@@ -37,9 +37,7 @@ Autoregressive models for molecular graph generation typically operate on flatte
 
 Discovering new molecules — for drugs, materials, or chemical tools — is a slow and expensive process. Recent advances in generative AI offer a way to accelerate this: train a model on known molecules and let it propose entirely new ones. But molecules aren't just sequences of characters. They have rich internal structure: rings, branches, and recurring building blocks that determine their chemical properties.
 
-Most existing approaches flatten a molecular graph into a linear sequence of atoms and bonds, then train a language model to generate these sequences token by token. This is like describing a building by listing every brick in order — it works, but it throws away the architectural blueprint. The model has to rediscover structural patterns (like "this is a six-membered ring") purely from raw token statistics.
-
-MOSAIC takes a different approach. Instead of generating molecules atom-by-atom, it first learns a hierarchical decomposition — grouping atoms into meaningful clusters, and clusters into larger motifs — then generates molecules top-down, from coarse structure to fine detail. Think of it as teaching the model the blueprint before asking it to place the bricks.
+Most existing approaches flatten a molecular graph into a linear sequence of atoms and bonds, then generate one token at a time — much like a language model that can only produce text one letter at a time. It technically works, but the model has to rediscover higher-level patterns (like common ring structures) from scratch. MOSAIC is more like generating at the word level: it learns to compose molecules from meaningful building blocks rather than individual atoms.
 
 ## Pipeline Overview
 
