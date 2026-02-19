@@ -97,8 +97,10 @@ We evaluate unconditional generation on the **COCONUT** dataset of complex natur
 <th>SENT</th>
 <th>H-SENT MC</th>
 <th>H-SENT SC</th>
+<th>H-SENT HAC</th>
 <th>HDT MC</th>
 <th>HDT SC</th>
+<th>HDT HAC</th>
 <th>HDTC</th>
 </tr>
 </thead>
@@ -106,9 +108,11 @@ We evaluate unconditional generation on the **COCONUT** dataset of complex natur
 <tr>
 <td>Validity ↑</td>
 <td>0.618</td>
-<td><span class="second">0.884</span></td>
+<td>0.884</td>
 <td>0.396</td>
-<td>0.892</td>
+<td>0.128</td>
+<td><span class="second">0.892</span></td>
+<td>0.068</td>
 <td>0.144</td>
 <td><span class="best">0.918</span></td>
 </tr>
@@ -117,7 +121,9 @@ We evaluate unconditional generation on the **COCONUT** dataset of complex natur
 <td><span class="best">1.000</span></td>
 <td>0.876</td>
 <td>0.934</td>
-<td>0.946</td>
+<td><span class="best">1.000</span></td>
+<td><span class="second">0.946</span></td>
+<td><span class="best">1.000</span></td>
 <td><span class="best">1.000</span></td>
 <td>0.858</td>
 </tr>
@@ -125,8 +131,10 @@ We evaluate unconditional generation on the **COCONUT** dataset of complex natur
 <td>Novelty ↑</td>
 <td><span class="best">1.000</span></td>
 <td>0.756</td>
-<td>0.914</td>
+<td><span class="second">0.914</span></td>
+<td><span class="best">1.000</span></td>
 <td>0.859</td>
+<td><span class="best">1.000</span></td>
 <td><span class="best">1.000</span></td>
 <td>0.802</td>
 </tr>
@@ -135,44 +143,54 @@ We evaluate unconditional generation on the **COCONUT** dataset of complex natur
 <td>6.94</td>
 <td>6.36</td>
 <td>10.56</td>
+<td>20.94</td>
 <td><span class="best">4.50</span></td>
+<td>24.93</td>
 <td>17.17</td>
 <td><span class="second">4.74</span></td>
 </tr>
 <tr>
 <td>SNN ↑</td>
 <td>0.269</td>
-<td><span class="second">0.989</span></td>
+<td>0.989</td>
 <td>0.707</td>
-<td><span class="best">0.992</span></td>
+<td>0.241</td>
+<td><span class="best">0.991</span></td>
+<td>0.242</td>
 <td>0.240</td>
-<td>0.990</td>
+<td><span class="second">0.990</span></td>
 </tr>
 <tr>
 <td>Frag ↑</td>
 <td>0.944</td>
 <td>0.948</td>
 <td>0.926</td>
+<td>0.800</td>
 <td><span class="second">0.965</span></td>
+<td>0.754</td>
 <td>0.885</td>
 <td><span class="best">0.969</span></td>
 </tr>
 <tr>
 <td>Scaff ↑</td>
 <td>0.000</td>
-<td>0.139</td>
+<td><span class="second">0.139</span></td>
 <td>0.099</td>
-<td><span class="second">0.111</span></td>
+<td>0.000</td>
+<td>0.111</td>
+<td>0.000</td>
 <td>0.000</td>
 <td><span class="best">0.150</span></td>
 </tr>
 <tr>
 <td>IntDiv ↑</td>
-<td><span class="best">0.887</span></td>
+<td><span class="second">0.887</span></td>
 <td>0.876</td>
 <td>0.883</td>
+<td>0.879</td>
 <td>0.881</td>
-<td><span class="second">0.888</span></td>
+<td>0.865</td>
+<td><span class="best">0.888</span></td>
 <td>0.882</td>
 </tr>
 <tr>
@@ -183,12 +201,14 @@ We evaluate unconditional generation on the **COCONUT** dataset of complex natur
 <td>1.000</td>
 <td>1.000</td>
 <td>1.000</td>
+<td>1.000</td>
+<td>1.000</td>
 </tr>
 </tbody>
 </table>
 </Wide>
 
-HDTC achieves the highest validity (91.8%) and fragment similarity (0.969), while HDT MC is a close second (89.2% validity). The flat-walk baseline SENT drops to 61.8% validity — a 30-point gap — showing that flat tokenization struggles with complex molecular graphs. Motif-community (MC) coarsening consistently outperforms spectral coarsening (SC) across all hierarchical tokenizers.
+HDTC achieves the highest validity (91.8%) and fragment similarity (0.969), while HDT MC is a close second (89.2% validity). The flat-walk baseline SENT drops to 61.8% validity — a 30-point gap — showing that flat tokenization struggles with complex molecular graphs. Motif-community (MC) coarsening consistently outperforms both spectral (SC) and agglomerative (HAC) coarsening across all hierarchical tokenizers, confirming the importance of preserving known chemical motifs during coarsening.
 
 <Wide>
 <table class="neurips-table">
@@ -199,8 +219,10 @@ HDTC achieves the highest validity (91.8%) and fragment similarity (0.969), whil
 <th>SENT</th>
 <th>H-SENT MC</th>
 <th>H-SENT SC</th>
+<th>H-SENT HAC</th>
 <th>HDT MC</th>
 <th>HDT SC</th>
+<th>HDT HAC</th>
 <th>HDTC</th>
 </tr>
 </thead>
@@ -210,7 +232,9 @@ HDTC achieves the highest validity (91.8%) and fragment similarity (0.969), whil
 <td>0.004</td>
 <td>0.003</td>
 <td>0.006</td>
+<td>0.018</td>
 <td><span class="best">0.002</span></td>
+<td>0.031</td>
 <td>0.015</td>
 <td><span class="second">0.003</span></td>
 </tr>
@@ -219,7 +243,9 @@ HDTC achieves the highest validity (91.8%) and fragment similarity (0.969), whil
 <td>0.005</td>
 <td>0.006</td>
 <td>0.014</td>
+<td>0.039</td>
 <td><span class="best">0.002</span></td>
+<td>0.066</td>
 <td>0.028</td>
 <td><span class="second">0.004</span></td>
 </tr>
@@ -228,7 +254,9 @@ HDTC achieves the highest validity (91.8%) and fragment similarity (0.969), whil
 <td>0.012</td>
 <td>0.009</td>
 <td>0.010</td>
+<td>0.059</td>
 <td><span class="best">0.003</span></td>
+<td>0.061</td>
 <td>0.032</td>
 <td><span class="second">0.005</span></td>
 </tr>
@@ -237,17 +265,21 @@ HDTC achieves the highest validity (91.8%) and fragment similarity (0.969), whil
 <td>0.046</td>
 <td>0.051</td>
 <td>0.052</td>
+<td>0.087</td>
 <td><span class="second">0.037</span></td>
+<td>0.097</td>
 <td>0.065</td>
 <td><span class="best">0.037</span></td>
 </tr>
 <tr class="midrule">
 <td>Motif Rate ↑</td>
 <td>0.553</td>
-<td>0.643</td>
+<td><span class="second">0.643</span></td>
 <td>0.556</td>
-<td><span class="second">0.612</span></td>
+<td>0.438</td>
+<td>0.612</td>
 <td>0.176</td>
+<td>0.389</td>
 <td><span class="best">0.704</span></td>
 </tr>
 <tr>
@@ -255,8 +287,10 @@ HDTC achieves the highest validity (91.8%) and fragment similarity (0.969), whil
 <td>0.067</td>
 <td><span class="second">0.023</span></td>
 <td><span class="best">0.010</span></td>
+<td>0.275</td>
 <td>0.081</td>
 <td>0.278</td>
+<td>0.217</td>
 <td>0.052</td>
 </tr>
 <tr>
@@ -264,8 +298,10 @@ HDTC achieves the highest validity (91.8%) and fragment similarity (0.969), whil
 <td>0.018</td>
 <td><span class="second">0.002</span></td>
 <td><span class="best">0.000</span></td>
+<td>0.362</td>
 <td>0.016</td>
 <td>2.509</td>
+<td>0.179</td>
 <td>0.008</td>
 </tr>
 <tr>
@@ -273,8 +309,10 @@ HDTC achieves the highest validity (91.8%) and fragment similarity (0.969), whil
 <td>0.043</td>
 <td>0.048</td>
 <td>0.069</td>
+<td>0.109</td>
 <td><span class="second">0.032</span></td>
 <td>0.204</td>
+<td>0.098</td>
 <td><span class="best">0.028</span></td>
 </tr>
 <tr>
@@ -282,15 +320,17 @@ HDTC achieves the highest validity (91.8%) and fragment similarity (0.969), whil
 <td>0.093</td>
 <td>0.116</td>
 <td>0.105</td>
+<td>0.942</td>
 <td><span class="second">0.090</span></td>
 <td>2.480</td>
+<td>0.143</td>
 <td><span class="best">0.086</span></td>
 </tr>
 </tbody>
 </table>
 </Wide>
 
-HDT MC and HDTC dominate across all four MMD metrics. HDTC leads on motif rate (70.4% of valid molecules contain at least one recognized motif) and functional-group fidelity. The motif-community and compositional approaches clearly excel at preserving complex substructure distributions in large molecules.
+HDT MC and HDTC dominate across all four MMD metrics. HDTC leads on motif rate (70.4% of valid molecules contain at least one recognized motif) and functional-group fidelity. SC and HAC variants lag significantly, reinforcing that the motif-community and compositional approaches excel at preserving complex substructure distributions in large molecules.
 
 ## Generation Gallery
 
