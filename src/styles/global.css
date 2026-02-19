@@ -52,6 +52,53 @@ main .katex-display {
   margin-inline: auto;
 }
 
+/* NeurIPS-style tables */
+.neurips-table {
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  width: 100%;
+  text-align: center;
+}
+.neurips-table thead th {
+  font-weight: 700;
+  padding: 0.4rem 0.6rem;
+  border-top: 2px solid #222;
+  border-bottom: 1px solid #222;
+  white-space: nowrap;
+}
+.neurips-table tbody td {
+  padding: 0.25rem 0.6rem;
+  white-space: nowrap;
+}
+.neurips-table tbody td:first-child,
+.neurips-table thead th:first-child {
+  text-align: left;
+  font-weight: 500;
+}
+.neurips-table tbody tr.midrule td {
+  border-top: 1px solid #999;
+}
+.neurips-table tbody tr:last-child td {
+  border-bottom: 2px solid #222;
+}
+.neurips-table .best {
+  font-weight: 700;
+}
+.neurips-table .second {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.neurips-table caption {
+  caption-side: top;
+  text-align: left;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+.neurips-table caption strong {
+  font-weight: 700;
+}
+
 /* Bibliography */
 .csl-entry {
   margin-block: 1.5rem;

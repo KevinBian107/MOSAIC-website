@@ -21,9 +21,11 @@ description: "MOSAIC: Compositional Abstraction for Autoregressive Molecular Gen
 import HighlightedSection from "./components/HighlightedSection.astro";
 import Figure from "./components/Figure.astro";
 import Picture from "./components/Picture.astro";
+import Wide from "./components/Wide.astro";
 import pipelineOverview from "./assets/pipeline_overview.png";
 import coarsening from "./assets/coarsening.png";
 import tokenization from "./assets/tokenization.png";
+import galleryMoses from "./assets/generation_gallery_moses.png";
 
 <HighlightedSection>
 
@@ -89,6 +91,221 @@ The following animation shows MOSAIC's autoregressive generation process, where 
 <Figure>
   <img slot="figure" src={new URL("demo.gif", import.meta.env.SITE + import.meta.env.BASE_URL + "/").pathname} alt="Animated demonstration of MOSAIC's autoregressive molecular generation process" style="width: 100%; border-radius: 0.5rem;" />
   <Fragment slot="caption">**Autoregressive generation demo.** MOSAIC generates a molecule by sequentially predicting tokens that encode hierarchical structure, atom types, and bond connectivity.</Fragment>
+</Figure>
+
+## Results on COCONUT
+
+We evaluate unconditional generation on the **COCONUT** dataset of complex natural products (~5K molecules, 30–100 heavy atoms, ≥4 rings). All models use a GPT-2 backbone (12 layers, 768 hidden, 12 heads) trained with identical hyperparameters. We generate 500 molecules per model and compare against the full reference dataset. **Bold** = best, <u>underline</u> = second best.
+
+<Wide>
+<table class="neurips-table">
+<caption><strong>Table 1.</strong> Unconditional generation quality on COCONUT (500 generated molecules, full reference). ↑ = higher is better, ↓ = lower is better.</caption>
+<thead>
+<tr>
+<th></th>
+<th>SENT</th>
+<th>H-SENT MC</th>
+<th>H-SENT SC</th>
+<th>HDT MC</th>
+<th>HDT SC</th>
+<th>HDTC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Validity ↑</td>
+<td>0.618</td>
+<td><span class="second">0.884</span></td>
+<td>0.396</td>
+<td>0.892</td>
+<td>0.144</td>
+<td><span class="best">0.918</span></td>
+</tr>
+<tr>
+<td>Uniqueness ↑</td>
+<td><span class="best">1.000</span></td>
+<td>0.876</td>
+<td>0.934</td>
+<td>0.946</td>
+<td><span class="best">1.000</span></td>
+<td>0.858</td>
+</tr>
+<tr>
+<td>Novelty ↑</td>
+<td><span class="best">1.000</span></td>
+<td>0.756</td>
+<td>0.914</td>
+<td>0.859</td>
+<td><span class="best">1.000</span></td>
+<td>0.802</td>
+</tr>
+<tr class="midrule">
+<td>FCD ↓</td>
+<td>6.94</td>
+<td>6.36</td>
+<td>10.56</td>
+<td><span class="best">4.50</span></td>
+<td>17.17</td>
+<td><span class="second">4.74</span></td>
+</tr>
+<tr>
+<td>SNN ↑</td>
+<td>0.269</td>
+<td><span class="second">0.989</span></td>
+<td>0.707</td>
+<td><span class="best">0.992</span></td>
+<td>0.240</td>
+<td>0.990</td>
+</tr>
+<tr>
+<td>Frag ↑</td>
+<td>0.944</td>
+<td>0.948</td>
+<td>0.926</td>
+<td><span class="second">0.965</span></td>
+<td>0.885</td>
+<td><span class="best">0.969</span></td>
+</tr>
+<tr>
+<td>Scaff ↑</td>
+<td>0.000</td>
+<td>0.139</td>
+<td>0.099</td>
+<td><span class="second">0.111</span></td>
+<td>0.000</td>
+<td><span class="best">0.150</span></td>
+</tr>
+<tr>
+<td>IntDiv ↑</td>
+<td><span class="best">0.887</span></td>
+<td>0.876</td>
+<td>0.883</td>
+<td>0.881</td>
+<td><span class="second">0.888</span></td>
+<td>0.882</td>
+</tr>
+<tr>
+<td>PGD ↓</td>
+<td>1.000</td>
+<td>1.000</td>
+<td>1.000</td>
+<td>1.000</td>
+<td>1.000</td>
+<td>1.000</td>
+</tr>
+</tbody>
+</table>
+</Wide>
+
+HDTC achieves the highest validity (91.8%) and fragment similarity (0.969), while HDT MC is a close second (89.2% validity). The flat-walk baseline SENT drops to 61.8% validity — a 30-point gap — showing that flat tokenization struggles with complex molecular graphs. Motif-community (MC) coarsening consistently outperforms spectral coarsening (SC) across all hierarchical tokenizers.
+
+<Wide>
+<table class="neurips-table">
+<caption><strong>Table 2.</strong> Motif-level fidelity and realistic proportions on COCONUT (500 generated molecules, full reference). All metrics ↓ except Motif Rate ↑.</caption>
+<thead>
+<tr>
+<th></th>
+<th>SENT</th>
+<th>H-SENT MC</th>
+<th>H-SENT SC</th>
+<th>HDT MC</th>
+<th>HDT SC</th>
+<th>HDTC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FG MMD ↓</td>
+<td>0.004</td>
+<td>0.003</td>
+<td>0.006</td>
+<td><span class="best">0.002</span></td>
+<td>0.015</td>
+<td><span class="second">0.003</span></td>
+</tr>
+<tr>
+<td>SMARTS MMD ↓</td>
+<td>0.005</td>
+<td>0.006</td>
+<td>0.014</td>
+<td><span class="best">0.002</span></td>
+<td>0.028</td>
+<td><span class="second">0.004</span></td>
+</tr>
+<tr>
+<td>Ring MMD ↓</td>
+<td>0.012</td>
+<td>0.009</td>
+<td>0.010</td>
+<td><span class="best">0.003</span></td>
+<td>0.032</td>
+<td><span class="second">0.005</span></td>
+</tr>
+<tr>
+<td>BRICS MMD ↓</td>
+<td>0.046</td>
+<td>0.051</td>
+<td>0.052</td>
+<td><span class="second">0.037</span></td>
+<td>0.065</td>
+<td><span class="best">0.037</span></td>
+</tr>
+<tr class="midrule">
+<td>Motif Rate ↑</td>
+<td>0.553</td>
+<td>0.643</td>
+<td>0.556</td>
+<td><span class="second">0.612</span></td>
+<td>0.176</td>
+<td><span class="best">0.704</span></td>
+</tr>
+<tr>
+<td>Subst. TV ↓</td>
+<td>0.067</td>
+<td><span class="second">0.023</span></td>
+<td><span class="best">0.010</span></td>
+<td>0.081</td>
+<td>0.278</td>
+<td>0.052</td>
+</tr>
+<tr>
+<td>Subst. KL ↓</td>
+<td>0.018</td>
+<td><span class="second">0.002</span></td>
+<td><span class="best">0.000</span></td>
+<td>0.016</td>
+<td>2.509</td>
+<td>0.008</td>
+</tr>
+<tr>
+<td>FG TV ↓</td>
+<td>0.043</td>
+<td>0.048</td>
+<td>0.069</td>
+<td><span class="second">0.032</span></td>
+<td>0.204</td>
+<td><span class="best">0.028</span></td>
+</tr>
+<tr>
+<td>FG KL ↓</td>
+<td>0.093</td>
+<td>0.116</td>
+<td>0.105</td>
+<td><span class="second">0.090</span></td>
+<td>2.480</td>
+<td><span class="best">0.086</span></td>
+</tr>
+</tbody>
+</table>
+</Wide>
+
+HDT MC and HDTC dominate across all four MMD metrics. HDTC leads on motif rate (70.4% of valid molecules contain at least one recognized motif) and functional-group fidelity. The motif-community and compositional approaches clearly excel at preserving complex substructure distributions in large molecules.
+
+## Generation Gallery
+
+<Figure>
+  <Picture slot="figure" src={galleryMoses} alt="Generation gallery showing reference molecules from MOSES alongside molecules generated by each of the six MOSAIC tokenizer variants" />
+  <Fragment slot="caption">**Generation gallery.** Reference molecules from MOSES (left column, gray background) paired with the closest-sized valid generation from each of six model variants. Each row targets a different molecular size, demonstrating that hierarchical tokenizers produce structurally diverse, chemically plausible molecules across the atom-count range.</Fragment>
 </Figure>
 
 ## BibTeX Citation
