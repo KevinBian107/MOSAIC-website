@@ -57,17 +57,23 @@ main .katex-display {
   border-collapse: collapse;
   font-size: 0.85rem;
   width: 100%;
+  max-width: 50rem;
+  margin-inline: auto;
   text-align: center;
+  table-layout: fixed;
 }
 .neurips-table thead th {
   font-weight: 700;
-  padding: 0.4rem 0.6rem;
+  padding: 0.5rem 0.5rem;
   border-top: 2px solid #222;
   border-bottom: 1px solid #222;
   white-space: nowrap;
 }
+.neurips-table thead th:first-child {
+  width: 18%;
+}
 .neurips-table tbody td {
-  padding: 0.25rem 0.6rem;
+  padding: 0.3rem 0.5rem;
   white-space: nowrap;
 }
 .neurips-table tbody td:first-child,
