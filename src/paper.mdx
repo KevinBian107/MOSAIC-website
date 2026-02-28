@@ -25,6 +25,7 @@ import Wide from "./components/Wide.astro";
 import pipelineOverview from "./assets/pipeline_overview.png";
 import coarsening from "./assets/coarsening.png";
 import tokenization from "./assets/tokenization.png";
+import constraint from "./assets/constraint.png";
 import galleryMoses from "./assets/generation_gallery_moses.png";
 
 <HighlightedSection>
@@ -84,253 +85,166 @@ The coarsened hierarchies are serialized into token sequences using one of four 
   <Fragment slot="caption">**Tokenization schemes.** From left to right: increasing hierarchical expressiveness. SENT provides a flat baseline, while H-SENT, HDT, and HDTC progressively encode more structural information about the molecular hierarchy.</Fragment>
 </Figure>
 
-## Results on COCONUT
+## Increasing Molecular Constraints
 
-We evaluate unconditional generation on the **COCONUT** dataset of complex natural products (~5K molecules, 30–100 heavy atoms, ≥4 rings). All models use a GPT-2 backbone (12 layers, 768 hidden, 12 heads) trained with identical hyperparameters. We generate 500 molecules per model and compare against the full reference dataset. **Bold** = best, <u>underline</u> = second best.
+Each tokenization strategy imposes a different level of chemical constraint on the generation process. Moving from flat random walks (SENT) through flexible coarsening (SC, HAC) to motif-constrained coarsening (MC, MC+FG), the generated molecules become progressively more structurally coherent and closer to real natural products.
+
+<Figure>
+  <Picture slot="figure" src={constraint} alt="Unconditional COCONUT generations arranged by increasing molecular constraint, from SENT through spectral coarsening to motif-constrained methods" />
+  <Fragment slot="caption">**Increasing molecular constraints.** Representative COCONUT generations from each tokenization, ordered left to right by increasing chemical constraint. As the tokenization imposes stronger structural priors — from unconstrained flat walks to typed motif communities — generated molecules become more chemically coherent.</Fragment>
+</Figure>
+
+## Results
+
+We evaluate unconditional generation on **MOSES** (~1M drug-like molecules, 10–26 heavy atoms) and **COCONUT** (~5K complex natural products, 30–100 heavy atoms, ≥4 rings). All models use a GPT-2 backbone (12 layers, 768 hidden, 12 heads, ~85M parameters) trained with identical hyperparameters. We generate 500 molecules per model and compare against the full reference dataset. **Bold** = better of SENT vs. best hierarchical per metric. Each "Best Hierarchical" cell shows *value (model)*.
 
 <Wide>
 <table class="neurips-table">
-<caption><strong>Table 1.</strong> Unconditional generation quality on COCONUT (500 generated molecules, full reference). ↑ = higher is better, ↓ = lower is better.</caption>
+<caption><strong>Table 1.</strong> MOSES and COCONUT benchmark summary: flat-walk baseline (SENT) vs. best hierarchical tokenizer per metric. ↑ = higher is better, ↓ = lower is better.</caption>
 <thead>
 <tr>
 <th></th>
+<th colspan="2" style="text-align: center; border-bottom: none;">MOSES</th>
+<th colspan="2" class="group-separator" style="text-align: center; border-bottom: none;">COCONUT</th>
+</tr>
+<tr class="sub-header">
+<th></th>
 <th>SENT</th>
-<th>H-SENT MC</th>
-<th>H-SENT SC</th>
-<th>H-SENT HAC</th>
-<th>HDT MC</th>
-<th>HDT SC</th>
-<th>HDT HAC</th>
-<th>HDTC</th>
+<th>Best Hier.</th>
+<th class="group-separator">SENT</th>
+<th>Best Hier.</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>Validity ↑</td>
-<td>0.618</td>
-<td>0.884</td>
-<td>0.396</td>
-<td>0.128</td>
-<td><span class="second">0.892</span></td>
-<td>0.068</td>
-<td>0.144</td>
-<td><span class="best">0.918</span></td>
+<td>0.868</td>
+<td><span class="best">0.891 (HDT MC)</span></td>
+<td class="group-separator">0.618</td>
+<td><span class="best">0.918 (HDTC)</span></td>
 </tr>
 <tr>
 <td>Uniqueness ↑</td>
 <td><span class="best">1.000</span></td>
-<td>0.876</td>
-<td>0.934</td>
+<td><span class="best">1.000 (all)</span></td>
+<td class="group-separator"><span class="best">1.000</span></td>
 <td><span class="best">1.000</span></td>
-<td><span class="second">0.946</span></td>
-<td><span class="best">1.000</span></td>
-<td><span class="best">1.000</span></td>
-<td>0.858</td>
 </tr>
 <tr>
 <td>Novelty ↑</td>
+<td>0.906</td>
+<td><span class="best">0.938 (H-SENT SC)</span></td>
+<td class="group-separator"><span class="best">1.000</span></td>
 <td><span class="best">1.000</span></td>
-<td>0.756</td>
-<td><span class="second">0.914</span></td>
-<td><span class="best">1.000</span></td>
-<td>0.859</td>
-<td><span class="best">1.000</span></td>
-<td><span class="best">1.000</span></td>
-<td>0.802</td>
 </tr>
 <tr class="midrule">
 <td>FCD ↓</td>
-<td>6.94</td>
-<td>6.36</td>
-<td>10.56</td>
-<td>20.94</td>
-<td><span class="best">4.50</span></td>
-<td>24.93</td>
-<td>17.17</td>
-<td><span class="second">4.74</span></td>
+<td><span class="best">3.07</span></td>
+<td>3.17 (HDTC)</td>
+<td class="group-separator">6.94</td>
+<td><span class="best">4.50 (HDT MC)</span></td>
 </tr>
 <tr>
 <td>SNN ↑</td>
-<td>0.269</td>
-<td>0.989</td>
-<td>0.707</td>
-<td>0.241</td>
-<td><span class="best">0.991</span></td>
-<td>0.242</td>
-<td>0.240</td>
-<td><span class="second">0.990</span></td>
+<td>0.347</td>
+<td><span class="best">0.377 (HDT MC)</span></td>
+<td class="group-separator">0.269</td>
+<td><span class="best">0.991 (HDT MC)</span></td>
 </tr>
 <tr>
 <td>Frag ↑</td>
-<td>0.944</td>
-<td>0.948</td>
-<td>0.926</td>
-<td>0.800</td>
-<td><span class="second">0.965</span></td>
-<td>0.754</td>
-<td>0.885</td>
-<td><span class="best">0.969</span></td>
+<td>0.993</td>
+<td><span class="best">0.994 (HDT MC)</span></td>
+<td class="group-separator">0.944</td>
+<td><span class="best">0.969 (HDTC)</span></td>
 </tr>
 <tr>
 <td>Scaff ↑</td>
-<td>0.000</td>
-<td><span class="second">0.139</span></td>
-<td>0.099</td>
-<td>0.000</td>
-<td>0.111</td>
-<td>0.000</td>
-<td>0.000</td>
-<td><span class="best">0.150</span></td>
+<td><span class="best">0.761</span></td>
+<td>0.759 (HDT MC)</td>
+<td class="group-separator">0.000</td>
+<td><span class="best">0.150 (HDTC)</span></td>
 </tr>
 <tr>
 <td>IntDiv ↑</td>
-<td><span class="second">0.887</span></td>
-<td>0.876</td>
-<td>0.883</td>
-<td>0.879</td>
-<td>0.881</td>
-<td>0.865</td>
-<td><span class="best">0.888</span></td>
-<td>0.882</td>
+<td>0.864</td>
+<td><span class="best">0.885 (HDT HAC)</span></td>
+<td class="group-separator">0.887</td>
+<td><span class="best">0.888 (HDT HAC)</span></td>
 </tr>
 <tr>
 <td>PGD ↓</td>
-<td>1.000</td>
-<td>1.000</td>
-<td>1.000</td>
-<td>1.000</td>
-<td>1.000</td>
-<td>1.000</td>
-<td>1.000</td>
-<td>1.000</td>
+<td>0.020</td>
+<td><span class="best">0.000 (HDTC)</span></td>
+<td class="group-separator">1.000</td>
+<td>1.000 (all)</td>
 </tr>
-</tbody>
-</table>
-</Wide>
-
-HDTC achieves the highest validity (91.8%) and fragment similarity (0.969), while HDT MC is a close second (89.2% validity). The flat-walk baseline SENT drops to 61.8% validity — a 30-point gap — showing that flat tokenization struggles with complex molecular graphs. Motif-community (MC) coarsening consistently outperforms both spectral (SC) and agglomerative (HAC) coarsening across all hierarchical tokenizers, confirming the importance of preserving known chemical motifs during coarsening.
-
-<Wide>
-<table class="neurips-table">
-<caption><strong>Table 2.</strong> Motif-level fidelity and realistic proportions on COCONUT (500 generated molecules, full reference). All metrics ↓ except Motif Rate ↑.</caption>
-<thead>
-<tr>
-<th></th>
-<th>SENT</th>
-<th>H-SENT MC</th>
-<th>H-SENT SC</th>
-<th>H-SENT HAC</th>
-<th>HDT MC</th>
-<th>HDT SC</th>
-<th>HDT HAC</th>
-<th>HDTC</th>
-</tr>
-</thead>
-<tbody>
-<tr>
+<tr class="midrule">
 <td>FG MMD ↓</td>
-<td>0.004</td>
-<td>0.003</td>
-<td>0.006</td>
-<td>0.018</td>
 <td><span class="best">0.002</span></td>
-<td>0.031</td>
-<td>0.015</td>
-<td><span class="second">0.003</span></td>
+<td><span class="best">0.002 (H-SENT MC)</span></td>
+<td class="group-separator">0.004</td>
+<td><span class="best">0.002 (HDT MC)</span></td>
 </tr>
 <tr>
 <td>SMARTS MMD ↓</td>
-<td>0.005</td>
-<td>0.006</td>
-<td>0.014</td>
-<td>0.039</td>
-<td><span class="best">0.002</span></td>
-<td>0.066</td>
-<td>0.028</td>
-<td><span class="second">0.004</span></td>
+<td><span class="best">0.003</span></td>
+<td><span class="best">0.003 (H-SENT MC)</span></td>
+<td class="group-separator">0.005</td>
+<td><span class="best">0.002 (HDT MC)</span></td>
 </tr>
 <tr>
 <td>Ring MMD ↓</td>
-<td>0.012</td>
-<td>0.009</td>
-<td>0.010</td>
-<td>0.059</td>
-<td><span class="best">0.003</span></td>
-<td>0.061</td>
-<td>0.032</td>
-<td><span class="second">0.005</span></td>
+<td>0.005</td>
+<td><span class="best">0.004 (HDT MC)</span></td>
+<td class="group-separator">0.012</td>
+<td><span class="best">0.003 (HDT MC)</span></td>
 </tr>
 <tr>
 <td>BRICS MMD ↓</td>
-<td>0.046</td>
-<td>0.051</td>
-<td>0.052</td>
-<td>0.087</td>
-<td><span class="second">0.037</span></td>
-<td>0.097</td>
-<td>0.065</td>
-<td><span class="best">0.037</span></td>
+<td><span class="best">0.019</span></td>
+<td>0.023 (HDTC)</td>
+<td class="group-separator">0.046</td>
+<td><span class="best">0.037 (HDT MC)</span></td>
 </tr>
-<tr class="midrule">
+<tr>
 <td>Motif Rate ↑</td>
-<td>0.553</td>
-<td><span class="second">0.643</span></td>
-<td>0.556</td>
-<td>0.438</td>
-<td>0.612</td>
-<td>0.176</td>
-<td>0.389</td>
-<td><span class="best">0.704</span></td>
-</tr>
-<tr>
-<td>Subst. TV ↓</td>
-<td>0.067</td>
-<td><span class="second">0.023</span></td>
-<td><span class="best">0.010</span></td>
-<td>0.275</td>
-<td>0.081</td>
-<td>0.278</td>
-<td>0.217</td>
-<td>0.052</td>
-</tr>
-<tr>
-<td>Subst. KL ↓</td>
-<td>0.018</td>
-<td><span class="second">0.002</span></td>
-<td><span class="best">0.000</span></td>
-<td>0.362</td>
-<td>0.016</td>
-<td>2.509</td>
-<td>0.179</td>
-<td>0.008</td>
-</tr>
-<tr>
-<td>FG TV ↓</td>
-<td>0.043</td>
-<td>0.048</td>
-<td>0.069</td>
-<td>0.109</td>
-<td><span class="second">0.032</span></td>
-<td>0.204</td>
-<td>0.098</td>
-<td><span class="best">0.028</span></td>
-</tr>
-<tr>
-<td>FG KL ↓</td>
-<td>0.093</td>
-<td>0.116</td>
-<td>0.105</td>
-<td>0.942</td>
-<td><span class="second">0.090</span></td>
-<td>2.480</td>
-<td>0.143</td>
-<td><span class="best">0.086</span></td>
+<td>0.790</td>
+<td><span class="best">0.900 (H-SENT SC)</span></td>
+<td class="group-separator">0.553</td>
+<td><span class="best">0.704 (HDTC)</span></td>
 </tr>
 </tbody>
 </table>
 </Wide>
 
-HDT MC and HDTC dominate across all four MMD metrics. HDTC leads on motif rate (70.4% of valid molecules contain at least one recognized motif) and functional-group fidelity. SC and HAC variants lag significantly, reinforcing that the motif-community and compositional approaches excel at preserving complex substructure distributions in large molecules.
+On **MOSES** (simple drug-like molecules), hierarchy provides modest improvements — SENT already achieves 86.8% validity and the gap is small. On **COCONUT** (complex natural products), the picture changes dramatically: SENT drops to 61.8% validity while HDTC reaches 91.8%, a **30-point gap**. FCD improves from 6.94 to 4.50, scaffold similarity jumps from 0.000 to 0.150, and Ring MMD drops 4× from 0.012 to 0.003. The benefit of hierarchical tokenization scales with molecular complexity.
+
+## Discussion
+
+<div class="key-finding">
+
+### 1. Increasing Molecular Constraint Stabilizes Training
+
+Flexible coarsening methods (spectral clustering, HAC) are **fragile**: small hyperparameter changes cause catastrophic failure. On COCONUT with HAC coarsening, H-SENT's fragment similarity drops from 0.70 → 0.11 → 0.04 → 0.00 as learning rate increases from 6e-4 to 4e-3, while Ring MMD explodes to ~0.98. In contrast, **HDT with the same HAC coarsening remains completely stable** (Frag 0.91–0.95, FG MMD 0.009–0.012) across all four learning rates. On MOSES, H-SENT SC achieves 73–78% validity but H-SENT HAC yields only 17–20%. Motif-constrained coarsening (MC, MC+FG) eliminates this fragility by aligning partitions with chemical structure, so each ring or functional group is generated as a coherent block.
+
+</div>
+
+<div class="key-finding">
+
+### 2. Abstraction & Composition Only Needed for Complex, Long-Range Graphs
+
+On MOSES (~20 atoms, simple scaffolds), SENT already achieves 86.8% validity and the best hierarchical method improves by only 2.3 percentage points. FCD is nearly tied (3.07 vs. 3.17), and motif MMD values are uniformly low. On COCONUT (30–100 atoms, ≥4 fused rings), the story reverses: validity gap widens to **30 points**, FCD improves by 2.4 points, Ring MMD drops 4×, and scaffold similarity goes from 0.000 (complete failure) to 0.150. For small, simple molecules, a flat random walk provides sufficient context. As molecules grow larger with multiple fused ring systems and intricate connectivity, flat walks fail to convey compositional structure and hierarchical tokenization becomes essential — exactly the regime relevant to natural products and drug discovery.
+
+</div>
+
+<div class="key-finding">
+
+### 3. Structural Understanding Achieves Reasonable Performance with ~3× Smaller Models
+
+Our GPT-2 backbone uses **~85M parameters**. AutoGraph, the state-of-the-art flat-walk baseline, employs a **~256M parameter** architecture. Despite using ~3× fewer parameters, MOSAIC with hierarchical tokenization achieves comparable generation quality on MOSES and substantially better results on complex molecules (COCONUT). This suggests that the structural inductive bias from hierarchical tokenization — where the model receives explicit community structure rather than inferring it — reduces the capacity needed for high-quality generation. Hierarchical tokenization trades explicit structural encoding for implicit learning burden, allowing smaller models to match or exceed larger ones.
+
+</div>
 
 ## Generation Gallery
 

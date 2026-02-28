@@ -72,6 +72,41 @@ main .katex-display {
 .neurips-table thead th:first-child {
   width: 18%;
 }
+.neurips-table thead th[colspan] {
+  border-bottom: none;
+  padding-bottom: 0.1rem;
+}
+.neurips-table thead tr.sub-header th {
+  border-top: none;
+  border-bottom: 1px solid #222;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+.neurips-table .group-separator {
+  border-left: 2px solid #ccc;
+}
+
+/* Discussion key findings */
+.key-finding {
+  background: linear-gradient(135deg, #f0f7ff 0%, #f5f0ff 100%);
+  border-left: 4px solid #3b82f6;
+  border-radius: 0.5rem;
+  padding: 1.25rem 1.5rem;
+  margin: 1.5rem 0;
+}
+.key-finding h3 {
+  margin-top: 0 !important;
+  margin-bottom: 0.5rem !important;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1e3a5f;
+}
+.key-finding p {
+  margin: 0.4rem 0 !important;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #333;
+}
 .neurips-table tbody td {
   padding: 0.3rem 0.5rem;
   white-space: nowrap;
