@@ -22,8 +22,8 @@ import HighlightedSection from "./components/HighlightedSection.astro";
 import Figure from "./components/Figure.astro";
 import Picture from "./components/Picture.astro";
 import Wide from "./components/Wide.astro";
-import pipelineOverview from "./assets/pipeline_overview.png";
-import coarsening from "./assets/coarsening.png";
+import pipelineEncoding from "./assets/pipeline_encoding.png";
+import pipelineDecoding from "./assets/pipeline_decoding.png";
 import tokenization from "./assets/tokenization.png";
 import constraint from "./assets/constraint.png";
 import galleryMoses from "./assets/generation_gallery_moses.png";
@@ -38,219 +38,227 @@ Autoregressive models for molecular graph generation typically operate on flatte
 
 ## Introduction
 
-Discovering new molecules — for drugs, materials, or chemical tools — is a slow and expensive process. Recent advances in generative AI offer a way to accelerate this: train a model on known molecules and let it propose entirely new ones. But molecules aren't just sequences of characters. They have rich internal structure: rings, branches, and recurring building blocks that determine their chemical properties.
+Molecular graphs are a natural representation for drug discovery and property prediction: nodes are atoms, edges are bonds, and validity and function depend heavily on recurring substructures — rings, functional groups, and their connectivity. While discriminative graph neural networks excel at predicting properties from such graphs, *generating* novel, valid molecules remains challenging. Autoregressive transformers, which have scaled successfully in language and code, offer an attractive backbone for graph generation when graphs are first tokenized into sequences. Existing tokenization schemes typically flatten the graph into a single linear order — a random walk or depth-first traversal — so that a causal transformer can predict the next token. These flat walks capture local adjacency and some long-range edges via back-references, but they do not expose the graph's compositional hierarchy: which atoms belong to which ring or functional group, and how those units connect. The model must therefore infer motif structure implicitly from the token stream, which can lead to broken rings, inconsistent motif statistics, and limited control over high-level chemistry.
 
-Most existing approaches flatten a molecular graph into a linear sequence of atoms and bonds, then generate one token at a time — much like a language model that can only produce text one letter at a time. It technically works, but the model has to rediscover higher-level patterns (like common ring structures) from scratch. MOSAIC is more like generating at the word level: it learns to compose molecules from meaningful building blocks rather than individual atoms.
+MOSAIC addresses this gap by introducing an explicit *hierarchical graph* (H-graph) abstraction and a three-stage pipeline for autoregressive molecular generation. First, we *coarsen* the molecular graph into a set of communities and inter-community edges, optionally using domain knowledge (ring and functional-group detection) to guarantee motif cohesion. Second, we *tokenize* the H-graph into a flat sequence using a coarse-before-fine ordering: the model sees community-level structure before atom-level detail, mirroring the compositional nature of chemistry. Third, we *flatten* the generated token sequence back into a molecular graph. All tokenization schemes support a lossless roundtrip from graph to tokens and back.
 
 ## Pipeline Overview
 
-MOSAIC operates through a three-stage pipeline. First, molecular graphs are recursively coarsened into multi-level hierarchies where atoms are grouped into structurally meaningful clusters. Second, these hierarchies are serialized into structured token sequences that preserve parent-child relationships and inter-cluster connectivity. Third, a Transformer decoder is trained to autoregressively generate these structured sequences, enabling the model to compose molecules from coarse structure down to fine-grained atomic detail.
+<Figure>
+  <Picture slot="figure" src={pipelineEncoding} alt="MOSAIC encoding pipeline: input molecule is decomposed into typed communities and tokenized into a hierarchical sequence" />
+  <Fragment slot="caption">**(a) Encoding.** A molecular graph (camptothecin) is decomposed into typed communities (rings, functional groups, singletons) and serialized into a hierarchical token sequence via HDTC.</Fragment>
+</Figure>
 
 <Figure>
-  <Picture slot="figure" src={pipelineOverview} alt="MOSAIC pipeline overview showing the three stages: hierarchical coarsening, structured tokenization, and autoregressive generation" />
-  <Fragment slot="caption">**MOSAIC pipeline overview.** A molecular graph (camptothecin) is hierarchically coarsened into multi-level clusters, tokenized into a structured sequence encoding the hierarchy, and generated autoregressively by a Transformer decoder.</Fragment>
+  <Picture slot="figure" src={pipelineDecoding} alt="MOSAIC decoding pipeline: a causal transformer generates tokens that are decoded into a functional decomposition and reconstructed into a molecule" />
+  <Fragment slot="caption">**(b) Decoding.** A causal GPT-2 transformer autoregressively generates a token sequence, which is decoded into a functional decomposition and reconstructed into a valid molecular graph.</Fragment>
 </Figure>
 
 ## Coarsening Strategies
 
-MOSAIC supports multiple graph coarsening strategies that recursively partition molecular graphs into hierarchical clusters. Each strategy offers different trade-offs between preserving chemical motifs and computational efficiency.
-
-- **Spectral Clustering**: Uses the eigenvectors of the graph Laplacian to identify natural clusters in the molecular graph. Spectral methods capture global graph structure and produce balanced partitions.
-
-- **Hierarchical Agglomerative Clustering (HAC)**: A bottom-up approach that iteratively merges the most similar adjacent nodes based on bond-type-weighted distances. HAC tends to preserve local chemical structure.
-
-- **Motif-aware Coarsening (MC)**: First identifies known chemical motifs (rings, functional groups) using SMARTS pattern matching, then applies spectral or HAC clustering to the remaining atoms. This ensures that chemically meaningful substructures are preserved as intact units in the hierarchy.
-
-- **Motif-aware + Functional Group (MC+FG)**: Extends motif-aware coarsening with an expanded library of functional group patterns, providing finer-grained control over which substructures are preserved during coarsening.
-
-<Figure>
-  <Picture slot="figure" src={coarsening} alt="Comparison of coarsening strategies: Spectral, HAC, Motif-aware Spectral, and Motif-aware HAC" />
-  <Fragment slot="caption">**Coarsening strategies.** Different approaches to recursively partitioning a molecular graph. Motif-aware variants (right) preserve chemically meaningful substructures like rings and functional groups as intact clusters.</Fragment>
-</Figure>
+The coarsening step determines how atoms are grouped into communities. We explore two families: *flexible* methods that optimize a graph-theoretic objective without domain knowledge, and *constraint* methods that leverage chemical structure to define communities. **Spectral clustering** uses the eigenvectors of the graph Laplacian to identify natural clusters, selecting the number of partitions that maximizes Newman–Girvan modularity. **Hierarchical agglomerative clustering (HAC)** takes a bottom-up approach, iteratively merging the most similar adjacent nodes based on bond-type-weighted distances, which tends to preserve local chemical neighborhoods. **Motif-aware coarsening (MC)** first identifies known chemical motifs (rings, functional groups) via SMARTS pattern matching, then clusters the remaining atoms with spectral or HAC methods. This ensures that chemically meaningful substructures are preserved as intact units. **MC with functional groups (MC+FG)** extends this with an expanded library of functional-group patterns for finer-grained control over which substructures remain intact during coarsening.
 
 ## Tokenization Schemes
 
-The coarsened hierarchies are serialized into token sequences using one of four tokenization schemes, each capturing increasing levels of hierarchical information:
-
-- **SENT** (Segmented Eulerian Neighborhood Trails): A flat baseline that serializes atom-bond sequences without hierarchy. Serves as the non-hierarchical reference point.
-
-- **H-SENT** (Hierarchical SENT): Extends SENT by encoding multi-level partition structure. Tokens include partition boundaries and parent-child relationships, enabling the model to learn coarse-to-fine generation.
-
-- **HDT** (Hierarchical Depth Tokenization): Encodes the full tree structure of the hierarchy using depth-first traversal. Each token carries depth information, making the hierarchical nesting explicit.
-
-- **HDTC** (Hierarchical Depth Tokenization with Composition): The most expressive scheme, extending HDT with explicit compositional tokens at each internal node. This gives the model complete information about the branching structure of the hierarchy.
+Given a coarsened hierarchy, we serialize it into a flat token sequence for autoregressive modeling. A shared design principle across all tokenizers is *coarse-before-fine* ordering: community-level structure always precedes atom-level detail, so the model first commits to the high-level decomposition before filling in local connectivity. **H-SENT** (Hierarchical SENT) encodes multi-level partition structure with explicit partition boundaries and bipartite cross-community edge blocks; each community's atoms are serialized via a SENT walk with back-edge brackets. **HDT** (Hierarchical DFS Tokenization) encodes the full tree structure using depth-first traversal with ENTER/EXIT nesting tokens, capturing both intra- and inter-community edges as back-edges during the DFS, with no separate bipartite reconstruction needed. **HDTC** (HDT with Composition) is the most expressive scheme: it types each community node (ring, functional group, singleton), encodes a super-graph of inter-community bonds, and serializes atom-level detail within each typed community block.
 
 <Figure>
-  <Picture slot="figure" src={tokenization} alt="Comparison of four tokenization schemes: SENT, H-SENT, HDT, and HDTC" />
-  <Fragment slot="caption">**Tokenization schemes.** From left to right: increasing hierarchical expressiveness. SENT provides a flat baseline, while H-SENT, HDT, and HDTC progressively encode more structural information about the molecular hierarchy.</Fragment>
+  <Picture slot="figure" src={tokenization} alt="Comparison of three hierarchical tokenization schemes: H-SENT, HDT, and HDTC" />
+  <Fragment slot="caption">**Hierarchical tokenization schemes** illustrated on cholesterol. **(A)** H-SENT partitions the molecular graph into community blocks (colored regions) with explicit cross-community edges. **(B)** HDT arranges atoms under partition nodes in a DFS tree; orange curves show graph edges, gray arrows trace the traversal. **(C)** HDTC adds typed community nodes (R = ring, F = functional group, S = singleton) and blue super-edges between communities.</Fragment>
 </Figure>
 
 ## Increasing Molecular Constraints
 
-Each tokenization strategy imposes a different level of chemical constraint on the generation process. Moving from flat random walks (SENT) through flexible coarsening (SC, HAC) to motif-constrained coarsening (MC, MC+FG), the generated molecules become progressively more structurally coherent and closer to real natural products.
-
 <Figure>
-  <Picture slot="figure" src={constraint} alt="Unconditional COCONUT generations arranged by increasing molecular constraint, from SENT through spectral coarsening to motif-constrained methods" />
-  <Fragment slot="caption">**Increasing molecular constraints.** Representative COCONUT generations from each tokenization, ordered left to right by increasing chemical constraint. As the tokenization imposes stronger structural priors — from unconstrained flat walks to typed motif communities — generated molecules become more chemically coherent.</Fragment>
+  <Picture slot="figure" src={constraint} alt="Unconditional COCONUT generations arranged by increasing molecular constraint" />
+  <Fragment slot="caption">**Increasing molecular constraints.** Representative COCONUT generations ordered by increasing chemical constraint. As the tokenization imposes stronger structural priors — from unconstrained flat walks to typed motif communities — generated molecules become more chemically coherent.</Fragment>
 </Figure>
 
 ## Results
 
-We evaluate unconditional generation on **MOSES** (~1M drug-like molecules, 10–26 heavy atoms) and **COCONUT** (~5K complex natural products, 30–100 heavy atoms, ≥4 rings). All models use a GPT-2 backbone (12 layers, 768 hidden, 12 heads, ~85M parameters) trained with identical hyperparameters. We generate 500 molecules per model and compare against the full reference dataset. **Bold** = better of SENT vs. best hierarchical per metric. Each "Best Hierarchical" cell shows *value (model)*.
+We evaluate unconditional generation on **COCONUT** (~5K complex natural products, 30–100 heavy atoms, ≥4 rings). All models use a GPT-2 backbone (12 layers, 768 hidden, 12 heads, ~85M parameters) trained with identical hyperparameters. We generate 500 molecules per model and evaluate against **1,000 randomly sampled references from the held-out test split**. **Bold** = best, <u>underline</u> = second best.
 
 <Wide>
 <table class="neurips-table">
-<caption><strong>Table 1.</strong> MOSES and COCONUT benchmark summary: flat-walk baseline (SENT) vs. best hierarchical tokenizer per metric. ↑ = higher is better, ↓ = lower is better.</caption>
+<caption><strong>Table 1.</strong> COCONUT test-set evaluation: 500 generated molecules vs. 1,000 test-split references. ↑ = higher is better, ↓ = lower is better.</caption>
 <thead>
 <tr>
 <th></th>
-<th colspan="2" style="text-align: center; border-bottom: none;">MOSES</th>
-<th colspan="2" class="group-separator" style="text-align: center; border-bottom: none;">COCONUT</th>
-</tr>
-<tr class="sub-header">
-<th></th>
 <th>SENT</th>
-<th>Best Hier.</th>
-<th class="group-separator">SENT</th>
-<th>Best Hier.</th>
+<th>H-SENT MC</th>
+<th>H-SENT SC</th>
+<th>H-SENT HAC</th>
+<th>HDT MC</th>
+<th>HDT SC</th>
+<th>HDT HAC</th>
+<th>HDTC</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>Validity ↑</td>
-<td>0.868</td>
-<td><span class="best">0.891 (HDT MC)</span></td>
-<td class="group-separator">0.618</td>
-<td><span class="best">0.918 (HDTC)</span></td>
+<td>0.618</td>
+<td>0.884</td>
+<td>0.396</td>
+<td>0.128</td>
+<td><span class="second">0.892</span></td>
+<td>0.068</td>
+<td>0.144</td>
+<td><span class="best">0.918</span></td>
 </tr>
 <tr>
 <td>Uniqueness ↑</td>
 <td><span class="best">1.000</span></td>
-<td><span class="best">1.000 (all)</span></td>
-<td class="group-separator"><span class="best">1.000</span></td>
+<td>0.876</td>
+<td>0.934</td>
 <td><span class="best">1.000</span></td>
+<td><span class="second">0.946</span></td>
+<td><span class="best">1.000</span></td>
+<td><span class="best">1.000</span></td>
+<td>0.858</td>
 </tr>
 <tr>
 <td>Novelty ↑</td>
-<td>0.906</td>
-<td><span class="best">0.938 (H-SENT SC)</span></td>
-<td class="group-separator"><span class="best">1.000</span></td>
 <td><span class="best">1.000</span></td>
+<td>0.756</td>
+<td><span class="second">0.914</span></td>
+<td><span class="best">1.000</span></td>
+<td>0.859</td>
+<td><span class="best">1.000</span></td>
+<td><span class="best">1.000</span></td>
+<td>0.802</td>
 </tr>
 <tr class="midrule">
 <td>FCD ↓</td>
-<td><span class="best">3.07</span></td>
-<td>3.17 (HDTC)</td>
-<td class="group-separator">6.94</td>
-<td><span class="best">4.50 (HDT MC)</span></td>
+<td>8.10</td>
+<td>8.03</td>
+<td>11.14</td>
+<td>21.01</td>
+<td><span class="best">6.45</span></td>
+<td>25.04</td>
+<td>17.52</td>
+<td><span class="second">6.57</span></td>
 </tr>
 <tr>
 <td>SNN ↑</td>
-<td>0.347</td>
-<td><span class="best">0.377 (HDT MC)</span></td>
-<td class="group-separator">0.269</td>
-<td><span class="best">0.991 (HDT MC)</span></td>
+<td>0.235</td>
+<td>0.370</td>
+<td>0.358</td>
+<td>0.208</td>
+<td><span class="best">0.378</span></td>
+<td>0.210</td>
+<td>0.210</td>
+<td><span class="second">0.375</span></td>
 </tr>
 <tr>
 <td>Frag ↑</td>
-<td>0.993</td>
-<td><span class="best">0.994 (HDT MC)</span></td>
-<td class="group-separator">0.944</td>
-<td><span class="best">0.969 (HDTC)</span></td>
+<td>0.936</td>
+<td>0.943</td>
+<td>0.926</td>
+<td>0.795</td>
+<td><span class="second">0.959</span></td>
+<td>0.749</td>
+<td>0.882</td>
+<td><span class="best">0.964</span></td>
 </tr>
 <tr>
 <td>Scaff ↑</td>
-<td><span class="best">0.761</span></td>
-<td>0.759 (HDT MC)</td>
-<td class="group-separator">0.000</td>
-<td><span class="best">0.150 (HDTC)</span></td>
+<td>0.000</td>
+<td>0.018</td>
+<td><span class="second">0.022</span></td>
+<td>0.000</td>
+<td>0.013</td>
+<td>0.000</td>
+<td>0.000</td>
+<td><span class="best">0.027</span></td>
 </tr>
 <tr>
 <td>IntDiv ↑</td>
-<td>0.864</td>
-<td><span class="best">0.885 (HDT HAC)</span></td>
-<td class="group-separator">0.887</td>
-<td><span class="best">0.888 (HDT HAC)</span></td>
-</tr>
-<tr>
-<td>PGD ↓</td>
-<td>0.020</td>
-<td><span class="best">0.000 (HDTC)</span></td>
-<td class="group-separator">1.000</td>
-<td>1.000 (all)</td>
+<td><span class="second">0.887</span></td>
+<td>0.876</td>
+<td>0.883</td>
+<td>0.879</td>
+<td>0.881</td>
+<td>0.865</td>
+<td><span class="best">0.888</span></td>
+<td>0.882</td>
 </tr>
 <tr class="midrule">
 <td>FG MMD ↓</td>
-<td><span class="best">0.002</span></td>
-<td><span class="best">0.002 (H-SENT MC)</span></td>
-<td class="group-separator">0.004</td>
-<td><span class="best">0.002 (HDT MC)</span></td>
+<td>0.005</td>
+<td>0.005</td>
+<td>0.008</td>
+<td>0.020</td>
+<td><span class="best">0.004</span></td>
+<td>0.033</td>
+<td>0.017</td>
+<td><span class="second">0.005</span></td>
 </tr>
 <tr>
 <td>SMARTS MMD ↓</td>
-<td><span class="best">0.003</span></td>
-<td><span class="best">0.003 (H-SENT MC)</span></td>
-<td class="group-separator">0.005</td>
-<td><span class="best">0.002 (HDT MC)</span></td>
+<td>0.007</td>
+<td>0.009</td>
+<td>0.015</td>
+<td>0.041</td>
+<td><span class="best">0.005</span></td>
+<td>0.068</td>
+<td>0.029</td>
+<td><span class="second">0.006</span></td>
 </tr>
 <tr>
 <td>Ring MMD ↓</td>
-<td>0.005</td>
-<td><span class="best">0.004 (HDT MC)</span></td>
-<td class="group-separator">0.012</td>
-<td><span class="best">0.003 (HDT MC)</span></td>
+<td>0.012</td>
+<td>0.012</td>
+<td>0.013</td>
+<td>0.059</td>
+<td><span class="best">0.006</span></td>
+<td>0.062</td>
+<td>0.032</td>
+<td><span class="second">0.008</span></td>
 </tr>
 <tr>
 <td>BRICS MMD ↓</td>
-<td><span class="best">0.019</span></td>
-<td>0.023 (HDTC)</td>
-<td class="group-separator">0.046</td>
-<td><span class="best">0.037 (HDT MC)</span></td>
+<td>0.048</td>
+<td>0.053</td>
+<td>0.052</td>
+<td>0.088</td>
+<td><span class="best">0.040</span></td>
+<td>0.098</td>
+<td>0.065</td>
+<td><span class="best">0.040</span></td>
 </tr>
 <tr>
 <td>Motif Rate ↑</td>
-<td>0.790</td>
-<td><span class="best">0.900 (H-SENT SC)</span></td>
-<td class="group-separator">0.553</td>
-<td><span class="best">0.704 (HDTC)</span></td>
+<td>0.553</td>
+<td><span class="second">0.643</span></td>
+<td>0.556</td>
+<td>0.438</td>
+<td>0.612</td>
+<td>0.176</td>
+<td>0.389</td>
+<td><span class="best">0.704</span></td>
 </tr>
 </tbody>
 </table>
 </Wide>
 
-On **MOSES** (simple drug-like molecules), hierarchy provides modest improvements — SENT already achieves 86.8% validity and the gap is small. On **COCONUT** (complex natural products), the picture changes dramatically: SENT drops to 61.8% validity while HDTC reaches 91.8%, a **30-point gap**. FCD improves from 6.94 to 4.50, scaffold similarity jumps from 0.000 to 0.150, and Ring MMD drops 4× from 0.012 to 0.003. The benefit of hierarchical tokenization scales with molecular complexity.
+On COCONUT, the flat-walk baseline (SENT) achieves 61.8% validity while HDTC reaches 91.8% — a **30-point improvement**. HDT MC achieves the best distributional fidelity (FCD 6.45, SNN 0.378) and motif-level metrics (Ring MMD 0.006, SMARTS MMD 0.005), while HDTC leads on validity, fragment similarity (0.964), scaffold recovery (0.027), and motif rate (0.704). Flexible coarsening methods (SC, HAC) underperform motif-constrained variants across the board, with HAC-based H-SENT collapsing to 12.8% validity. The benefit of hierarchical tokenization is most pronounced on these complex, multi-ring natural products where flat walks cannot convey compositional structure.
 
 ## Discussion
 
-<div class="key-finding">
+**Molecular constraints stabilize training.** Flexible coarsening (SC, HAC) is not only weaker on average but *fragile* to hyperparameters. In learning-rate sweeps, H-SENT with HAC on COCONUT collapses catastrophically as the learning rate increases: fragment similarity drops from 0.70 to 0.00 and Ring MMD explodes to ~0.98. In contrast, HDT with the same HAC coarsening remains completely stable (Frag 0.91–0.95) across all four learning rates. The root cause is that spectral and hierarchical affinity clustering optimize topology-based objectives with no notion of chemical valence, producing partitions that split rings or merge unrelated groups. Motif-constrained coarsening aligns partitions with chemical structure, so each ring or functional group is generated as a coherent block, eliminating this fragility.
 
-### 1. Increasing Molecular Constraint Stabilizes Training
+**Hierarchy scales with molecular complexity.** On MOSES (~20 atoms), SENT already achieves 86.8% validity and hierarchy improves by only 2.3 percentage points — flat walks suffice for small, simple scaffolds. On COCONUT (30–100 atoms, ≥4 fused rings), the gap widens dramatically: validity improves by 30 points, FCD improves from 8.10 to 6.45, Ring MMD drops 2× (0.012 → 0.006), and scaffold similarity goes from 0.000 to 0.027. Flat walks completely fail to recover ring scaffolds in complex molecules. The coarse-before-fine ordering of hierarchical tokenization becomes essential exactly in the regime most relevant to natural products and drug discovery.
 
-Flexible coarsening methods (spectral clustering, HAC) are **fragile**: small hyperparameter changes cause catastrophic failure. On COCONUT with HAC coarsening, H-SENT's fragment similarity drops from 0.70 → 0.11 → 0.04 → 0.00 as learning rate increases from 6e-4 to 4e-3, while Ring MMD explodes to ~0.98. In contrast, **HDT with the same HAC coarsening remains completely stable** (Frag 0.91–0.95, FG MMD 0.009–0.012) across all four learning rates. On MOSES, H-SENT SC achieves 73–78% validity but H-SENT HAC yields only 17–20%. Motif-constrained coarsening (MC, MC+FG) eliminates this fragility by aligning partitions with chemical structure, so each ring or functional group is generated as a coherent block.
+**Random walks as natural augmentation.** SENT re-samples a different random walk each time a molecule appears in a mini-batch, providing free data augmentation. With 1M molecules over 250K steps (batch size 16), the model sees ~16M total samples, each a distinct linearization. Hierarchical tokenizers produce deterministic sequences, reducing per-molecule diversity. This augmentation advantage helps SENT on simple molecules (strong MOSES baseline despite no structural bias) but is insufficient for complex molecules where compositional structure cannot be inferred from walk diversity alone.
 
-</div>
-
-<div class="key-finding">
-
-### 2. Abstraction & Composition Only Needed for Complex, Long-Range Graphs
-
-On MOSES (~20 atoms, simple scaffolds), SENT already achieves 86.8% validity and the best hierarchical method improves by only 2.3 percentage points. FCD is nearly tied (3.07 vs. 3.17), and motif MMD values are uniformly low. On COCONUT (30–100 atoms, ≥4 fused rings), the story reverses: validity gap widens to **30 points**, FCD improves by 2.4 points, Ring MMD drops 4×, and scaffold similarity goes from 0.000 (complete failure) to 0.150. For small, simple molecules, a flat random walk provides sufficient context. As molecules grow larger with multiple fused ring systems and intricate connectivity, flat walks fail to convey compositional structure and hierarchical tokenization becomes essential — exactly the regime relevant to natural products and drug discovery.
-
-</div>
-
-<div class="key-finding">
-
-### 3. Structural Understanding Achieves Reasonable Performance with ~3× Smaller Models
-
-Our GPT-2 backbone uses **~85M parameters**. AutoGraph, the state-of-the-art flat-walk baseline, employs a **~256M parameter** architecture. Despite using ~3× fewer parameters, MOSAIC with hierarchical tokenization achieves comparable generation quality on MOSES and substantially better results on complex molecules (COCONUT). This suggests that the structural inductive bias from hierarchical tokenization — where the model receives explicit community structure rather than inferring it — reduces the capacity needed for high-quality generation. Hierarchical tokenization trades explicit structural encoding for implicit learning burden, allowing smaller models to match or exceed larger ones.
-
-</div>
+**Smaller models via structural bias.** Our GPT-2 backbone (~85M parameters) is ~3× smaller than AutoGraph's 256M-parameter architecture, yet achieves comparable MOSES results and substantially better COCONUT results. Hierarchical tokenization provides an inductive bias that reduces the model capacity needed: explicit community structure trades structural encoding for implicit learning burden, allowing smaller models to match or exceed larger ones.
 
 ## Generation Gallery
 
 <Figure>
   <Picture slot="figure" src={galleryMoses} alt="Generation gallery showing reference molecules from MOSES alongside molecules generated by each of the six MOSAIC tokenizer variants" />
-  <Fragment slot="caption">**Generation gallery.** Reference molecules from MOSES (left column, gray background) paired with the closest-sized valid generation from each of six model variants. Each row targets a different molecular size, demonstrating that hierarchical tokenizers produce structurally diverse, chemically plausible molecules across the atom-count range.</Fragment>
+  <Fragment slot="caption">**Generation gallery.** Reference molecules from MOSES (left column, gray background) paired with the closest-sized valid generation from each model variant. Each row targets a different molecular size, demonstrating that hierarchical tokenizers produce structurally diverse, chemically plausible molecules across the atom-count range.</Fragment>
 </Figure>
 
 ## Generation Demo
