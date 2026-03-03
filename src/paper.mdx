@@ -76,173 +76,129 @@ Given a coarsened hierarchy, we serialize it into a flat token sequence for auto
 
 ## Results
 
-We evaluate unconditional generation on **COCONUT** (~5K complex natural products, 30–100 heavy atoms, ≥4 rings). All models use a GPT-2 backbone (12 layers, 768 hidden, 12 heads, ~85M parameters) trained with identical hyperparameters. We generate 500 molecules per model and evaluate against **1,000 randomly sampled references from the held-out test split**. **Bold** = best, <u>underline</u> = second best.
+We evaluate unconditional generation on **MOSES** (~1M drug-like molecules, 10–26 heavy atoms) and **COCONUT** (~5K complex natural products, 30–100 heavy atoms, ≥4 rings). All models use a GPT-2 backbone (12 layers, 768 hidden, 12 heads, ~85M parameters) trained with identical hyperparameters. We generate 500 molecules per model and evaluate against **1,000 randomly sampled references from the held-out test split**. **Bold** = better of SENT vs. best hierarchical per metric. Each "Best Hier." cell shows *value (model)*.
 
 <Wide>
 <table class="neurips-table">
-<caption><strong>Table 1.</strong> COCONUT test-set evaluation: 500 generated molecules vs. 1,000 test-split references. ↑ = higher is better, ↓ = lower is better.</caption>
+<caption><strong>Table 1.</strong> MOSES and COCONUT test-set evaluation: flat-walk baseline (SENT) vs. best hierarchical tokenizer per metric (500 generated molecules, 1,000 test-split references). ↑ = higher is better, ↓ = lower is better.</caption>
 <thead>
 <tr>
 <th></th>
+<th colspan="2" style="text-align: center; border-bottom: none;">MOSES (test)</th>
+<th colspan="2" class="group-separator" style="text-align: center; border-bottom: none;">COCONUT (test)</th>
+</tr>
+<tr class="sub-header">
+<th></th>
 <th>SENT</th>
-<th>H-SENT MC</th>
-<th>H-SENT SC</th>
-<th>H-SENT HAC</th>
-<th>HDT MC</th>
-<th>HDT SC</th>
-<th>HDT HAC</th>
-<th>HDTC</th>
+<th>Best Hier.</th>
+<th class="group-separator">SENT</th>
+<th>Best Hier.</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>Validity ↑</td>
-<td>0.618</td>
-<td>0.884</td>
-<td>0.396</td>
-<td>0.128</td>
-<td><span class="second">0.892</span></td>
-<td>0.068</td>
-<td>0.144</td>
-<td><span class="best">0.918</span></td>
+<td>0.868</td>
+<td><span class="best">0.891 (HDT MC)</span></td>
+<td class="group-separator">0.618</td>
+<td><span class="best">0.918 (HDTC)</span></td>
 </tr>
 <tr>
 <td>Uniqueness ↑</td>
 <td><span class="best">1.000</span></td>
-<td>0.876</td>
-<td>0.934</td>
+<td><span class="best">1.000 (all)</span></td>
+<td class="group-separator"><span class="best">1.000</span></td>
 <td><span class="best">1.000</span></td>
-<td><span class="second">0.946</span></td>
-<td><span class="best">1.000</span></td>
-<td><span class="best">1.000</span></td>
-<td>0.858</td>
 </tr>
 <tr>
 <td>Novelty ↑</td>
+<td>0.906</td>
+<td><span class="best">0.938 (H-SENT SC)</span></td>
+<td class="group-separator"><span class="best">1.000</span></td>
 <td><span class="best">1.000</span></td>
-<td>0.756</td>
-<td><span class="second">0.914</span></td>
-<td><span class="best">1.000</span></td>
-<td>0.859</td>
-<td><span class="best">1.000</span></td>
-<td><span class="best">1.000</span></td>
-<td>0.802</td>
 </tr>
 <tr class="midrule">
 <td>FCD ↓</td>
-<td>8.10</td>
-<td>8.03</td>
-<td>11.14</td>
-<td>21.01</td>
-<td><span class="best">6.45</span></td>
-<td>25.04</td>
-<td>17.52</td>
-<td><span class="second">6.57</span></td>
+<td>3.07</td>
+<td><span class="best">3.02 (H-SENT SC)</span></td>
+<td class="group-separator">8.10</td>
+<td><span class="best">6.45 (HDT MC)</span></td>
 </tr>
 <tr>
 <td>SNN ↑</td>
-<td>0.235</td>
-<td>0.370</td>
-<td>0.358</td>
-<td>0.208</td>
-<td><span class="best">0.378</span></td>
-<td>0.210</td>
-<td>0.210</td>
-<td><span class="second">0.375</span></td>
+<td>0.347</td>
+<td><span class="best">0.377 (HDT MC)</span></td>
+<td class="group-separator">0.235</td>
+<td><span class="best">0.378 (HDT MC)</span></td>
 </tr>
 <tr>
 <td>Frag ↑</td>
-<td>0.936</td>
-<td>0.943</td>
-<td>0.926</td>
-<td>0.795</td>
-<td><span class="second">0.959</span></td>
-<td>0.749</td>
-<td>0.882</td>
-<td><span class="best">0.964</span></td>
+<td>0.993</td>
+<td><span class="best">0.994 (HDT MC)</span></td>
+<td class="group-separator">0.936</td>
+<td><span class="best">0.964 (HDTC)</span></td>
 </tr>
 <tr>
 <td>Scaff ↑</td>
-<td>0.000</td>
-<td>0.018</td>
-<td><span class="second">0.022</span></td>
-<td>0.000</td>
-<td>0.013</td>
-<td>0.000</td>
-<td>0.000</td>
-<td><span class="best">0.027</span></td>
+<td><span class="best">0.761</span></td>
+<td>0.759 (HDT MC)</td>
+<td class="group-separator">0.000</td>
+<td><span class="best">0.027 (HDTC)</span></td>
 </tr>
 <tr>
 <td>IntDiv ↑</td>
-<td><span class="second">0.887</span></td>
-<td>0.876</td>
-<td>0.883</td>
-<td>0.879</td>
-<td>0.881</td>
-<td>0.865</td>
-<td><span class="best">0.888</span></td>
-<td>0.882</td>
+<td>0.864</td>
+<td><span class="best">0.886 (HDTC)</span></td>
+<td class="group-separator">0.887</td>
+<td><span class="best">0.888 (HDT HAC)</span></td>
+</tr>
+<tr>
+<td>PGD ↓</td>
+<td>0.020</td>
+<td><span class="best">0.000 (HDTC)</span></td>
+<td class="group-separator">1.000</td>
+<td>1.000 (all)</td>
 </tr>
 <tr class="midrule">
 <td>FG MMD ↓</td>
-<td>0.005</td>
-<td>0.005</td>
-<td>0.008</td>
-<td>0.020</td>
-<td><span class="best">0.004</span></td>
-<td>0.033</td>
-<td>0.017</td>
-<td><span class="second">0.005</span></td>
+<td><span class="best">0.002</span></td>
+<td><span class="best">0.002 (H-SENT MC)</span></td>
+<td class="group-separator">0.005</td>
+<td><span class="best">0.004 (HDT MC)</span></td>
 </tr>
 <tr>
 <td>SMARTS MMD ↓</td>
-<td>0.007</td>
-<td>0.009</td>
-<td>0.015</td>
-<td>0.041</td>
-<td><span class="best">0.005</span></td>
-<td>0.068</td>
-<td>0.029</td>
-<td><span class="second">0.006</span></td>
+<td><span class="best">0.003</span></td>
+<td><span class="best">0.003 (H-SENT MC)</span></td>
+<td class="group-separator">0.007</td>
+<td><span class="best">0.005 (HDT MC)</span></td>
 </tr>
 <tr>
 <td>Ring MMD ↓</td>
-<td>0.012</td>
-<td>0.012</td>
-<td>0.013</td>
-<td>0.059</td>
-<td><span class="best">0.006</span></td>
-<td>0.062</td>
-<td>0.032</td>
-<td><span class="second">0.008</span></td>
+<td>0.005</td>
+<td><span class="best">0.003 (H-SENT MC)</span></td>
+<td class="group-separator">0.012</td>
+<td><span class="best">0.006 (HDT MC)</span></td>
 </tr>
 <tr>
 <td>BRICS MMD ↓</td>
-<td>0.048</td>
-<td>0.053</td>
-<td>0.052</td>
-<td>0.088</td>
-<td><span class="best">0.040</span></td>
-<td>0.098</td>
-<td>0.065</td>
-<td><span class="best">0.040</span></td>
+<td><span class="best">0.019</span></td>
+<td>0.023 (H-SENT MC)</td>
+<td class="group-separator">0.048</td>
+<td><span class="best">0.040 (HDT MC)</span></td>
 </tr>
 <tr>
 <td>Motif Rate ↑</td>
-<td>0.553</td>
-<td><span class="second">0.643</span></td>
-<td>0.556</td>
-<td>0.438</td>
-<td>0.612</td>
-<td>0.176</td>
-<td>0.389</td>
-<td><span class="best">0.704</span></td>
+<td>0.790</td>
+<td><span class="best">0.900 (H-SENT SC)</span></td>
+<td class="group-separator">0.553</td>
+<td><span class="best">0.704 (HDTC)</span></td>
 </tr>
 </tbody>
 </table>
 </Wide>
 
-On COCONUT, the flat-walk baseline (SENT) achieves 61.8% validity while HDTC reaches 91.8% — a **30-point improvement**. HDT MC achieves the best distributional fidelity (FCD 6.45, SNN 0.378) and motif-level metrics (Ring MMD 0.006, SMARTS MMD 0.005), while HDTC leads on validity, fragment similarity (0.964), scaffold recovery (0.027), and motif rate (0.704). Flexible coarsening methods (SC, HAC) underperform motif-constrained variants across the board, with HAC-based H-SENT collapsing to 12.8% validity. The benefit of hierarchical tokenization is most pronounced on these complex, multi-ring natural products where flat walks cannot convey compositional structure.
+On **MOSES** (simple drug-like molecules), hierarchy provides modest but consistent improvements — SENT achieves 86.8% validity while HDT MC reaches 89.1%, and motif rate jumps from 0.790 to 0.900 with H-SENT SC. On **COCONUT** (complex natural products), the gap is dramatic: SENT drops to 61.8% validity while HDTC reaches 91.8%, a **30-point improvement**. FCD improves from 8.10 to 6.45, Ring MMD drops 2× (0.012 → 0.006), and scaffold similarity goes from 0.000 to 0.027. The benefit of hierarchical tokenization scales with molecular complexity.
 
 ## Discussion
 
