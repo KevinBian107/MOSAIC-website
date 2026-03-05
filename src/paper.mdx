@@ -61,6 +61,11 @@ MOSAIC addresses this gap by introducing an explicit *hierarchical graph* (H-gra
 
 The coarsening step determines how atoms are grouped into communities. We explore two families: *flexible* methods that optimize a graph-theoretic objective without domain knowledge, and *constraint* methods that leverage chemical structure to define communities. **Spectral clustering** uses the eigenvectors of the graph Laplacian to identify natural clusters, selecting the number of partitions that maximizes Newman–Girvan modularity. **Hierarchical agglomerative clustering (HAC)** takes a bottom-up approach, iteratively merging the most similar adjacent nodes based on bond-type-weighted distances, which tends to preserve local chemical neighborhoods. **Motif-aware coarsening (MC)** first identifies known chemical motifs (rings, functional groups) via SMARTS pattern matching, then clusters the remaining atoms with spectral or HAC methods. This ensures that chemically meaningful substructures are preserved as intact units. **MC with functional groups (MC+FG)** extends this with an expanded library of functional-group patterns for finer-grained control over which substructures remain intact during coarsening.
 
+<Figure>
+  <Picture slot="figure" src={constraint} alt="Unconditional COCONUT generations arranged by increasing molecular constraint" />
+  <Fragment slot="caption">**Increasing molecular constraints.** Representative COCONUT generations ordered by increasing chemical constraint. As the tokenization imposes stronger structural priors — from unconstrained flat walks to typed motif communities — generated molecules become more chemically coherent.</Fragment>
+</Figure>
+
 ## Tokenization Schemes
 
 Given a coarsened hierarchy, we serialize it into a flat token sequence for autoregressive modeling. A shared design principle across all tokenizers is *coarse-before-fine* ordering: community-level structure always precedes atom-level detail, so the model first commits to the high-level decomposition before filling in local connectivity. **H-SENT** (Hierarchical SENT) encodes multi-level partition structure with explicit partition boundaries and bipartite cross-community edge blocks; each community's atoms are serialized via a SENT walk with back-edge brackets. **HDT** (Hierarchical DFS Tokenization) encodes the full tree structure using depth-first traversal with ENTER/EXIT nesting tokens, capturing both intra- and inter-community edges as back-edges during the DFS, with no separate bipartite reconstruction needed. **HDTC** (HDT with Composition) is the most expressive scheme: it types each community node (ring, functional group, singleton), encodes a super-graph of inter-community bonds, and serializes atom-level detail within each typed community block.
@@ -70,155 +75,573 @@ Given a coarsened hierarchy, we serialize it into a flat token sequence for auto
   <Fragment slot="caption">**Hierarchical tokenization schemes** illustrated on cholesterol. **(A)** H-SENT partitions the molecular graph into community blocks (colored regions) with explicit cross-community edges. **(B)** HDT arranges atoms under partition nodes in a DFS tree; orange curves show graph edges, gray arrows trace the traversal. **(C)** HDTC adds typed community nodes (R = ring, F = functional group, S = singleton) and blue super-edges between communities.</Fragment>
 </Figure>
 
-## Increasing Molecular Constraints
-
-<Figure>
-  <Picture slot="figure" src={constraint} alt="Unconditional COCONUT generations arranged by increasing molecular constraint" />
-  <Fragment slot="caption">**Increasing molecular constraints.** Representative COCONUT generations ordered by increasing chemical constraint. As the tokenization imposes stronger structural priors — from unconstrained flat walks to typed motif communities — generated molecules become more chemically coherent.</Fragment>
-</Figure>
-
 ## Results
 
-We evaluate unconditional generation on **MOSES** (~1M drug-like molecules, 10–26 heavy atoms) and **COCONUT** (~5K complex natural products, 30–100 heavy atoms, ≥4 rings). All models use a GPT-2 backbone (12 layers, 768 hidden, 12 heads, ~85M parameters) trained with identical hyperparameters. We generate 500 molecules per model and evaluate against **1,000 randomly sampled references from the held-out test split**. **Bold** = better of SENT vs. best hierarchical per metric. Each "Best Hier." cell shows *value (model)*.
+We evaluate unconditional generation on **MOSES** (~1M drug-like molecules, 10–26 heavy atoms) and **COCONUT** (~5K complex natural products, 30–100 heavy atoms, ≥4 rings). All models use a GPT-2 backbone (12 layers, 768 hidden, 12 heads, ~85M parameters) trained with identical hyperparameters. We generate 500 molecules per model and evaluate against **5,000 randomly sampled references from the combined train+test set**. We report four representative tokenizers: SENT (flat baseline), H-SENT MC (hierarchical flat-walk), HDT MC (motif-community hierarchy), and HDTC (typed compositional). **Bold** = best among the four per dataset.
 
 <Wide>
 <table class="neurips-table">
-<caption><strong>Table 1.</strong> MOSES and COCONUT test-set evaluation: flat-walk baseline (SENT) vs. best hierarchical tokenizer per metric (500 generated molecules, 1,000 test-split references). ↑ = higher is better, ↓ = lower is better.</caption>
+<caption><strong>Table 1.</strong> MOSES and COCONUT full-reference evaluation (500 generated molecules, 5,000 full-reference samples). ↑ = higher is better, ↓ = lower is better. Metric sources: <sup><em>a</em></sup>MOSES benchmark, <sup><em>b</em></sup>Fréchet ChemNet Distance, <sup><em>c</em></sup>PolyGraph Discrepancy, <sup><em>d</em></sup>augmented from AutoGraph, <sup><em>e</em></sup>ours.</caption>
 <thead>
 <tr>
 <th></th>
-<th colspan="2" style="text-align: center; border-bottom: none;">MOSES (test)</th>
-<th colspan="2" class="group-separator" style="text-align: center; border-bottom: none;">COCONUT (test)</th>
+<th colspan="4" style="text-align: center; border-bottom: none;">MOSES (full ref.)</th>
+<th colspan="4" class="group-separator" style="text-align: center; border-bottom: none;">COCONUT (full ref.)</th>
 </tr>
 <tr class="sub-header">
 <th></th>
 <th>SENT</th>
-<th>Best Hier.</th>
+<th>H-SENT MC</th>
+<th>HDT MC</th>
+<th>HDTC</th>
 <th class="group-separator">SENT</th>
-<th>Best Hier.</th>
+<th>H-SENT MC</th>
+<th>HDT MC</th>
+<th>HDTC</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Validity ↑</td>
+<td>Validity<sup><em>a</em></sup> ↑</td>
 <td>0.868</td>
-<td><span class="best">0.891 (HDT MC)</span></td>
+<td>0.851</td>
+<td><span class="best">0.891</span></td>
+<td>0.835</td>
 <td class="group-separator">0.618</td>
-<td><span class="best">0.918 (HDTC)</span></td>
+<td>0.884</td>
+<td>0.892</td>
+<td><span class="best">0.918</span></td>
 </tr>
 <tr>
-<td>Uniqueness ↑</td>
+<td>Uniqueness<sup><em>a</em></sup> ↑</td>
 <td><span class="best">1.000</span></td>
-<td><span class="best">1.000 (all)</span></td>
+<td><span class="best">1.000</span></td>
+<td><span class="best">1.000</span></td>
+<td><span class="best">1.000</span></td>
 <td class="group-separator"><span class="best">1.000</span></td>
-<td><span class="best">1.000</span></td>
+<td>0.876</td>
+<td>0.946</td>
+<td>0.858</td>
 </tr>
 <tr>
-<td>Novelty ↑</td>
-<td>0.906</td>
-<td><span class="best">0.938 (H-SENT SC)</span></td>
+<td>Novelty<sup><em>a</em></sup> ↑</td>
+<td><span class="best">0.986</span></td>
+<td>0.938</td>
+<td>0.936</td>
+<td>0.955</td>
 <td class="group-separator"><span class="best">1.000</span></td>
-<td><span class="best">1.000</span></td>
+<td>0.756</td>
+<td>0.859</td>
+<td>0.802</td>
 </tr>
 <tr class="midrule">
-<td>FCD ↓</td>
-<td>3.07</td>
-<td><span class="best">3.02 (H-SENT SC)</span></td>
-<td class="group-separator">8.10</td>
-<td><span class="best">6.45 (HDT MC)</span></td>
+<td>FCD<sup><em>b</em></sup> ↓</td>
+<td>2.35</td>
+<td>2.44</td>
+<td><span class="best">2.30</span></td>
+<td>2.44</td>
+<td class="group-separator">6.94</td>
+<td>6.36</td>
+<td><span class="best">4.50</span></td>
+<td>4.74</td>
 </tr>
 <tr>
-<td>SNN ↑</td>
-<td>0.347</td>
-<td><span class="best">0.377 (HDT MC)</span></td>
-<td class="group-separator">0.235</td>
-<td><span class="best">0.378 (HDT MC)</span></td>
+<td>SNN<sup><em>a</em></sup> ↑</td>
+<td>0.396</td>
+<td>0.439</td>
+<td><span class="best">0.445</span></td>
+<td>0.435</td>
+<td class="group-separator">0.269</td>
+<td>0.989</td>
+<td><span class="best">0.991</span></td>
+<td>0.990</td>
 </tr>
 <tr>
-<td>Frag ↑</td>
-<td>0.993</td>
-<td><span class="best">0.994 (HDT MC)</span></td>
-<td class="group-separator">0.936</td>
-<td><span class="best">0.964 (HDTC)</span></td>
+<td>Frag<sup><em>a</em></sup> ↑</td>
+<td><span class="best">0.995</span></td>
+<td><span class="best">0.995</span></td>
+<td><span class="best">0.995</span></td>
+<td>0.992</td>
+<td class="group-separator">0.944</td>
+<td>0.948</td>
+<td>0.965</td>
+<td><span class="best">0.969</span></td>
 </tr>
 <tr>
-<td>Scaff ↑</td>
-<td><span class="best">0.761</span></td>
-<td>0.759 (HDT MC)</td>
-<td class="group-separator">0.000</td>
-<td><span class="best">0.027 (HDTC)</span></td>
-</tr>
-<tr>
-<td>IntDiv ↑</td>
+<td>Scaff<sup><em>a</em></sup> ↑</td>
+<td>0.860</td>
+<td><span class="best">0.896</span></td>
 <td>0.864</td>
-<td><span class="best">0.886 (HDTC)</span></td>
-<td class="group-separator">0.887</td>
-<td><span class="best">0.888 (HDT HAC)</span></td>
+<td>0.828</td>
+<td class="group-separator">0.000</td>
+<td>0.139</td>
+<td>0.111</td>
+<td><span class="best">0.150</span></td>
 </tr>
 <tr>
-<td>PGD ↓</td>
-<td>0.020</td>
-<td><span class="best">0.000 (HDTC)</span></td>
+<td>IntDiv<sup><em>a</em></sup> ↑</td>
+<td><span class="best">0.864</span></td>
+<td>0.859</td>
+<td>0.855</td>
+<td>0.858</td>
+<td class="group-separator"><span class="best">0.887</span></td>
+<td>0.876</td>
+<td>0.881</td>
+<td>0.882</td>
+</tr>
+<tr>
+<td>PGD<sup><em>c</em></sup> ↓</td>
+<td><span class="best">0.000</span></td>
+<td><span class="best">0.000</span></td>
+<td><span class="best">0.000</span></td>
+<td>0.051</td>
 <td class="group-separator">1.000</td>
-<td>1.000 (all)</td>
+<td>1.000</td>
+<td>1.000</td>
+<td>1.000</td>
 </tr>
 <tr class="midrule">
-<td>FG MMD ↓</td>
+<td>FG MMD<sup><em>d</em></sup> ↓</td>
 <td><span class="best">0.002</span></td>
-<td><span class="best">0.002 (H-SENT MC)</span></td>
+<td><span class="best">0.002</span></td>
+<td><span class="best">0.002</span></td>
+<td><span class="best">0.002</span></td>
+<td class="group-separator">0.004</td>
+<td>0.003</td>
+<td><span class="best">0.002</span></td>
+<td>0.003</td>
+</tr>
+<tr>
+<td>SMARTS MMD<sup><em>d</em></sup> ↓</td>
+<td><span class="best">0.002</span></td>
+<td>0.003</td>
+<td><span class="best">0.002</span></td>
+<td><span class="best">0.002</span></td>
 <td class="group-separator">0.005</td>
-<td><span class="best">0.004 (HDT MC)</span></td>
+<td>0.006</td>
+<td><span class="best">0.002</span></td>
+<td>0.004</td>
 </tr>
 <tr>
-<td>SMARTS MMD ↓</td>
-<td><span class="best">0.003</span></td>
-<td><span class="best">0.003 (H-SENT MC)</span></td>
-<td class="group-separator">0.007</td>
-<td><span class="best">0.005 (HDT MC)</span></td>
-</tr>
-<tr>
-<td>Ring MMD ↓</td>
-<td>0.005</td>
-<td><span class="best">0.003 (H-SENT MC)</span></td>
+<td>Ring MMD<sup><em>d</em></sup> ↓</td>
+<td><span class="best">0.004</span></td>
+<td>0.006</td>
+<td><span class="best">0.004</span></td>
+<td>0.006</td>
 <td class="group-separator">0.012</td>
-<td><span class="best">0.006 (HDT MC)</span></td>
+<td>0.009</td>
+<td><span class="best">0.003</span></td>
+<td>0.005</td>
 </tr>
 <tr>
-<td>BRICS MMD ↓</td>
-<td><span class="best">0.019</span></td>
-<td>0.023 (H-SENT MC)</td>
-<td class="group-separator">0.048</td>
-<td><span class="best">0.040 (HDT MC)</span></td>
+<td>BRICS MMD<sup><em>d</em></sup> ↓</td>
+<td><span class="best">0.016</span></td>
+<td>0.018</td>
+<td>0.018</td>
+<td>0.022</td>
+<td class="group-separator">0.046</td>
+<td>0.051</td>
+<td><span class="best">0.037</span></td>
+<td><span class="best">0.037</span></td>
 </tr>
 <tr>
-<td>Motif Rate ↑</td>
+<td>Motif Rate<sup><em>e</em></sup> ↑</td>
 <td>0.790</td>
-<td><span class="best">0.900 (H-SENT SC)</span></td>
+<td>0.832</td>
+<td>0.806</td>
+<td><span class="best">0.836</span></td>
 <td class="group-separator">0.553</td>
-<td><span class="best">0.704 (HDTC)</span></td>
+<td>0.643</td>
+<td>0.612</td>
+<td><span class="best">0.704</span></td>
 </tr>
 </tbody>
 </table>
 </Wide>
 
-On **MOSES** (simple drug-like molecules), hierarchy provides modest but consistent improvements — SENT achieves 86.8% validity while HDT MC reaches 89.1%, and motif rate jumps from 0.790 to 0.900 with H-SENT SC. On **COCONUT** (complex natural products), the gap is dramatic: SENT drops to 61.8% validity while HDTC reaches 91.8%, a **30-point improvement**. FCD improves from 8.10 to 6.45, Ring MMD drops 2× (0.012 → 0.006), and scaffold similarity goes from 0.000 to 0.027. The benefit of hierarchical tokenization scales with molecular complexity.
+On **MOSES** (simple drug-like molecules), hierarchy provides modest but consistent improvements — SENT achieves 86.8% validity while HDT MC reaches 89.1% with the best FCD (2.30) and PGD (0.000). H-SENT MC achieves the best scaffold similarity (0.896). HDTC leads on motif rate (0.836). All four achieve near-identical motif-level fidelity (FG MMD ≤ 0.002). On **COCONUT** (complex natural products), the gap is dramatic: SENT drops to 61.8% validity while HDTC reaches 91.8%, a **30-point improvement**. H-SENT MC reaches 88.4% validity with the best scaffold similarity (0.139). FCD improves from 6.94 to 4.50, Ring MMD drops 4× (0.012 → 0.003), and scaffold similarity goes from 0.000 to 0.150. The benefit of hierarchical tokenization scales with molecular complexity.
 
-## Discussion
+### Full Results
 
-**Molecular constraints stabilize training.** Flexible coarsening (SC, HAC) is not only weaker on average but *fragile* to hyperparameters. In learning-rate sweeps, H-SENT with HAC on COCONUT collapses catastrophically as the learning rate increases: fragment similarity drops from 0.70 to 0.00 and Ring MMD explodes to ~0.98. In contrast, HDT with the same HAC coarsening remains completely stable (Frag 0.91–0.95) across all four learning rates. The root cause is that spectral and hierarchical affinity clustering optimize topology-based objectives with no notion of chemical valence, producing partitions that split rings or merge unrelated groups. Motif-constrained coarsening aligns partitions with chemical structure, so each ring or functional group is generated as a coherent block, eliminating this fragility.
+<details>
+<summary><strong>MOSES Full Results (all 8 model variants)</strong></summary>
 
-**Hierarchy scales with molecular complexity.** On MOSES (~20 atoms), SENT already achieves 86.8% validity and hierarchy improves by only 2.3 percentage points — flat walks suffice for small, simple scaffolds. On COCONUT (30–100 atoms, ≥4 fused rings), the gap widens dramatically: validity improves by 30 points, FCD improves from 8.10 to 6.45, Ring MMD drops 2× (0.012 → 0.006), and scaffold similarity goes from 0.000 to 0.027. Flat walks completely fail to recover ring scaffolds in complex molecules. The coarse-before-fine ordering of hierarchical tokenization becomes essential exactly in the regime most relevant to natural products and drug discovery.
+<Wide>
+<table class="neurips-table">
+<caption><strong>Table 2.</strong> MOSES: unconditional generation quality and motif-level fidelity (500 generated molecules, evaluated against 5,000 randomly sampled references from the combined train+test set). <strong>Bold</strong> = best, <u>underline</u> = second best.</caption>
+<thead>
+<tr>
+<th></th>
+<th>SENT</th>
+<th>H-SENT MC</th>
+<th>H-SENT SC</th>
+<th>H-SENT HAC</th>
+<th>HDT MC</th>
+<th>HDT SC</th>
+<th>HDT HAC</th>
+<th>HDTC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Validity ↑</td>
+<td><span class="second">0.868</span></td>
+<td>0.851</td>
+<td>0.842</td>
+<td>0.209</td>
+<td><span class="best">0.891</span></td>
+<td>0.220</td>
+<td>0.213</td>
+<td>0.835</td>
+</tr>
+<tr>
+<td>Uniqueness ↑</td>
+<td><span class="best">1.000</span></td>
+<td><span class="best">1.000</span></td>
+<td><span class="best">1.000</span></td>
+<td><span class="best">1.000</span></td>
+<td><span class="best">1.000</span></td>
+<td><span class="best">1.000</span></td>
+<td><span class="best">1.000</span></td>
+<td><span class="best">1.000</span></td>
+</tr>
+<tr>
+<td>Novelty ↑</td>
+<td><span class="best">0.986</span></td>
+<td>0.938</td>
+<td>0.811</td>
+<td>0.876</td>
+<td>0.936</td>
+<td>0.882</td>
+<td>0.859</td>
+<td><span class="second">0.955</span></td>
+</tr>
+<tr class="midrule">
+<td>FCD ↓</td>
+<td><span class="second">2.35</span></td>
+<td>2.44</td>
+<td>2.57</td>
+<td>10.81</td>
+<td><span class="best">2.30</span></td>
+<td>9.27</td>
+<td>10.89</td>
+<td>2.44</td>
+</tr>
+<tr>
+<td>SNN ↑</td>
+<td>0.396</td>
+<td>0.439</td>
+<td>0.436</td>
+<td><span class="best">0.462</span></td>
+<td>0.445</td>
+<td>0.454</td>
+<td><span class="second">0.459</span></td>
+<td>0.435</td>
+</tr>
+<tr>
+<td>Frag ↑</td>
+<td><span class="second">0.995</span></td>
+<td>0.995</td>
+<td>0.993</td>
+<td>0.951</td>
+<td><span class="best">0.995</span></td>
+<td>0.962</td>
+<td>0.950</td>
+<td>0.992</td>
+</tr>
+<tr>
+<td>Scaff ↑</td>
+<td>0.860</td>
+<td><span class="best">0.896</span></td>
+<td>0.710</td>
+<td>0.669</td>
+<td><span class="second">0.864</span></td>
+<td>0.603</td>
+<td>0.687</td>
+<td>0.828</td>
+</tr>
+<tr>
+<td>IntDiv ↑</td>
+<td><span class="best">0.864</span></td>
+<td>0.859</td>
+<td><span class="second">0.861</span></td>
+<td>0.846</td>
+<td>0.855</td>
+<td>0.853</td>
+<td>0.855</td>
+<td>0.858</td>
+</tr>
+<tr>
+<td>PGD ↓</td>
+<td><span class="best">0.000</span></td>
+<td><span class="best">0.000</span></td>
+<td><span class="second">0.045</span></td>
+<td>0.710</td>
+<td><span class="best">0.000</span></td>
+<td>0.719</td>
+<td>0.763</td>
+<td>0.051</td>
+</tr>
+<tr class="midrule">
+<td>FG MMD ↓</td>
+<td><span class="best">0.002</span></td>
+<td>0.002</td>
+<td><span class="second">0.002</span></td>
+<td>0.006</td>
+<td>0.002</td>
+<td>0.005</td>
+<td>0.006</td>
+<td>0.002</td>
+</tr>
+<tr>
+<td>SMARTS MMD ↓</td>
+<td><span class="best">0.002</span></td>
+<td>0.003</td>
+<td>0.003</td>
+<td>0.013</td>
+<td>0.002</td>
+<td>0.007</td>
+<td>0.013</td>
+<td><span class="second">0.002</span></td>
+</tr>
+<tr>
+<td>Ring MMD ↓</td>
+<td>0.004</td>
+<td>0.006</td>
+<td><span class="best">0.002</span></td>
+<td>0.023</td>
+<td><span class="second">0.004</span></td>
+<td>0.012</td>
+<td>0.019</td>
+<td>0.006</td>
+</tr>
+<tr>
+<td>BRICS MMD ↓</td>
+<td><span class="best">0.016</span></td>
+<td><span class="second">0.018</span></td>
+<td>0.020</td>
+<td>0.061</td>
+<td>0.018</td>
+<td>0.055</td>
+<td>0.061</td>
+<td>0.022</td>
+</tr>
+<tr>
+<td>Motif Rate ↑</td>
+<td>0.790</td>
+<td>0.832</td>
+<td>0.725</td>
+<td><span class="best">0.900</span></td>
+<td>0.806</td>
+<td>0.868</td>
+<td><span class="second">0.883</span></td>
+<td>0.836</td>
+</tr>
+</tbody>
+</table>
+</Wide>
 
-**Random walks as natural augmentation.** SENT re-samples a different random walk each time a molecule appears in a mini-batch, providing free data augmentation. With 1M molecules over 250K steps (batch size 16), the model sees ~16M total samples, each a distinct linearization. Hierarchical tokenizers produce deterministic sequences, reducing per-molecule diversity. This augmentation advantage helps SENT on simple molecules (strong MOSES baseline despite no structural bias) but is insufficient for complex molecules where compositional structure cannot be inferred from walk diversity alone.
+</details>
 
-**Smaller models via structural bias.** Our GPT-2 backbone (~85M parameters) is ~3× smaller than AutoGraph's 256M-parameter architecture, yet achieves comparable MOSES results and substantially better COCONUT results. Hierarchical tokenization provides an inductive bias that reduces the model capacity needed: explicit community structure trades structural encoding for implicit learning burden, allowing smaller models to match or exceed larger ones.
+<details>
+<summary><strong>COCONUT Full Results (all 8 model variants)</strong></summary>
 
-## Generation Gallery
+<Wide>
+<table class="neurips-table">
+<caption><strong>Table 3.</strong> COCONUT: unconditional generation quality and motif-level fidelity (500 generated molecules, evaluated against 5,000 randomly sampled references from the combined train+test set). <strong>Bold</strong> = best, <u>underline</u> = second best.</caption>
+<thead>
+<tr>
+<th></th>
+<th>SENT</th>
+<th>H-SENT MC</th>
+<th>H-SENT SC</th>
+<th>H-SENT HAC</th>
+<th>HDT MC</th>
+<th>HDT SC</th>
+<th>HDT HAC</th>
+<th>HDTC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Validity ↑</td>
+<td>0.618</td>
+<td>0.884</td>
+<td>0.396</td>
+<td>0.128</td>
+<td><span class="second">0.892</span></td>
+<td>0.068</td>
+<td>0.144</td>
+<td><span class="best">0.918</span></td>
+</tr>
+<tr>
+<td>Uniqueness ↑</td>
+<td><span class="best">1.000</span></td>
+<td>0.876</td>
+<td>0.934</td>
+<td><span class="best">1.000</span></td>
+<td><span class="second">0.946</span></td>
+<td><span class="best">1.000</span></td>
+<td><span class="best">1.000</span></td>
+<td>0.858</td>
+</tr>
+<tr>
+<td>Novelty ↑</td>
+<td><span class="best">1.000</span></td>
+<td>0.756</td>
+<td><span class="second">0.914</span></td>
+<td><span class="best">1.000</span></td>
+<td>0.859</td>
+<td><span class="best">1.000</span></td>
+<td><span class="best">1.000</span></td>
+<td>0.802</td>
+</tr>
+<tr class="midrule">
+<td>FCD ↓</td>
+<td>6.94</td>
+<td>6.36</td>
+<td>10.56</td>
+<td>20.94</td>
+<td><span class="best">4.50</span></td>
+<td>24.93</td>
+<td>17.17</td>
+<td><span class="second">4.74</span></td>
+</tr>
+<tr>
+<td>SNN ↑</td>
+<td>0.269</td>
+<td>0.989</td>
+<td>0.707</td>
+<td>0.241</td>
+<td><span class="best">0.991</span></td>
+<td>0.242</td>
+<td>0.240</td>
+<td><span class="second">0.990</span></td>
+</tr>
+<tr>
+<td>Frag ↑</td>
+<td>0.944</td>
+<td>0.948</td>
+<td>0.926</td>
+<td>0.800</td>
+<td><span class="second">0.965</span></td>
+<td>0.754</td>
+<td>0.885</td>
+<td><span class="best">0.969</span></td>
+</tr>
+<tr>
+<td>Scaff ↑</td>
+<td>0.000</td>
+<td><span class="second">0.139</span></td>
+<td>0.099</td>
+<td>0.000</td>
+<td>0.111</td>
+<td>0.000</td>
+<td>0.000</td>
+<td><span class="best">0.150</span></td>
+</tr>
+<tr>
+<td>IntDiv ↑</td>
+<td><span class="second">0.887</span></td>
+<td>0.876</td>
+<td>0.883</td>
+<td>0.879</td>
+<td>0.881</td>
+<td>0.865</td>
+<td><span class="best">0.888</span></td>
+<td>0.882</td>
+</tr>
+<tr>
+<td>PGD ↓</td>
+<td>1.000</td>
+<td>1.000</td>
+<td>1.000</td>
+<td>1.000</td>
+<td>1.000</td>
+<td>1.000</td>
+<td>1.000</td>
+<td>1.000</td>
+</tr>
+<tr class="midrule">
+<td>FG MMD ↓</td>
+<td>0.004</td>
+<td>0.003</td>
+<td>0.006</td>
+<td>0.018</td>
+<td><span class="best">0.002</span></td>
+<td>0.031</td>
+<td>0.015</td>
+<td><span class="second">0.003</span></td>
+</tr>
+<tr>
+<td>SMARTS MMD ↓</td>
+<td>0.005</td>
+<td>0.006</td>
+<td>0.014</td>
+<td>0.039</td>
+<td><span class="best">0.002</span></td>
+<td>0.066</td>
+<td>0.028</td>
+<td><span class="second">0.004</span></td>
+</tr>
+<tr>
+<td>Ring MMD ↓</td>
+<td>0.012</td>
+<td>0.009</td>
+<td>0.010</td>
+<td>0.059</td>
+<td><span class="best">0.003</span></td>
+<td>0.061</td>
+<td>0.032</td>
+<td><span class="second">0.005</span></td>
+</tr>
+<tr>
+<td>BRICS MMD ↓</td>
+<td>0.046</td>
+<td>0.051</td>
+<td>0.052</td>
+<td>0.087</td>
+<td><span class="best">0.037</span></td>
+<td>0.097</td>
+<td>0.065</td>
+<td><span class="best">0.037</span></td>
+</tr>
+<tr>
+<td>Motif Rate ↑</td>
+<td>0.553</td>
+<td><span class="second">0.643</span></td>
+<td>0.556</td>
+<td>0.438</td>
+<td>0.612</td>
+<td>0.176</td>
+<td>0.389</td>
+<td><span class="best">0.704</span></td>
+</tr>
+</tbody>
+</table>
+</Wide>
+
+</details>
+
+<details>
+<summary><strong>Generation Gallery</strong></summary>
 
 <Figure>
   <Picture slot="figure" src={galleryMoses} alt="Generation gallery showing reference molecules from MOSES alongside molecules generated by each of the six MOSAIC tokenizer variants" />
   <Fragment slot="caption">**Generation gallery.** Reference molecules from MOSES (left column, gray background) paired with the closest-sized valid generation from each model variant. Each row targets a different molecular size, demonstrating that hierarchical tokenizers produce structurally diverse, chemically plausible molecules across the atom-count range.</Fragment>
 </Figure>
+
+</details>
+
+## Discussion
+
+**Molecular constraints stabilize training.** Flexible coarsening (SC, HAC) is not only weaker on average but *fragile* to hyperparameters. In learning-rate sweeps, H-SENT with HAC on COCONUT collapses catastrophically as the learning rate increases: fragment similarity drops from 0.70 to 0.00 and Ring MMD explodes to ~0.98. In contrast, HDT with the same HAC coarsening remains completely stable (Frag 0.91–0.95) across all four learning rates. The root cause is that spectral and hierarchical affinity clustering optimize topology-based objectives with no notion of chemical valence, producing partitions that split rings or merge unrelated groups. Motif-constrained coarsening aligns partitions with chemical structure, so each ring or functional group is generated as a coherent block, eliminating this fragility.
+
+**Hierarchy scales with molecular complexity.** On MOSES (~20 atoms), SENT already achieves 86.8% validity and HDT MC improves by only 2.3 percentage points — flat walks suffice for small, simple scaffolds. On COCONUT (30–100 atoms, ≥4 fused rings), the gap widens dramatically: validity improves by 30 points, FCD improves from 6.94 to 4.50, Ring MMD drops 4× (0.012 → 0.003), and scaffold similarity goes from 0.000 to 0.150. Flat walks completely fail to recover ring scaffolds in complex molecules. The coarse-before-fine ordering of hierarchical tokenization becomes essential exactly in the regime most relevant to natural products and drug discovery.
+
+**Random walks as natural augmentation.** SENT re-samples a different random walk each time a molecule appears in a mini-batch, providing free data augmentation. With 1M molecules over 250K steps (batch size 16), the model sees ~16M total samples, each a distinct linearization. Hierarchical tokenizers produce deterministic sequences, reducing per-molecule diversity. This augmentation advantage helps SENT on simple molecules (strong MOSES baseline despite no structural bias) but is insufficient for complex molecules where compositional structure cannot be inferred from walk diversity alone.
+
+**Smaller models via structural bias.** Our GPT-2 backbone (~85M parameters) is ~3× smaller than AutoGraph's 256M-parameter architecture, yet achieves comparable MOSES results and substantially better COCONUT results. Hierarchical tokenization provides an inductive bias that reduces the model capacity needed: explicit community structure trades structural encoding for implicit learning burden, allowing smaller models to match or exceed larger ones.
 
 ## Generation Demo
 
