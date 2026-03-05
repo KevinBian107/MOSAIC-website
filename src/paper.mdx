@@ -13,9 +13,12 @@ links:
   - name: Code
     url: https://github.com/KevinBian107/MOSAIC
     icon: ri:github-line
-  - name: Demo
+  - name: Live Generation
     url: https://kevinbian107.github.io/MOSAIC-live-demo/
     icon: ri:flask-line
+  - name: Visualizer
+    url: /MOSAIC-website/visualizer
+    icon: ri:play-circle-line
 theme: light
 favicon: favicon.svg
 description: "MOSAIC: Compositional Abstraction for Autoregressive Molecular Generation"
@@ -642,15 +645,6 @@ On **MOSES** (simple drug-like molecules), hierarchy provides modest but consist
 **Random walks as natural augmentation.** SENT re-samples a different random walk each time a molecule appears in a mini-batch, providing free data augmentation. With 1M molecules over 250K steps (batch size 16), the model sees ~16M total samples, each a distinct linearization. Hierarchical tokenizers produce deterministic sequences, reducing per-molecule diversity. This augmentation advantage helps SENT on simple molecules (strong MOSES baseline despite no structural bias) but is insufficient for complex molecules where compositional structure cannot be inferred from walk diversity alone.
 
 **Smaller models via structural bias.** Our GPT-2 backbone (~85M parameters) is ~3× smaller than AutoGraph's 256M-parameter architecture, yet achieves comparable MOSES results and substantially better COCONUT results. Hierarchical tokenization provides an inductive bias that reduces the model capacity needed: explicit community structure trades structural encoding for implicit learning burden, allowing smaller models to match or exceed larger ones.
-
-## Generation Demo
-
-The following animation shows MOSAIC's autoregressive generation process, where the model builds a molecule token-by-token, progressively assembling the hierarchical structure from coarse partitions down to individual atoms and bonds.
-
-<Figure>
-  <img slot="figure" src={new URL("demo.gif", import.meta.env.SITE + import.meta.env.BASE_URL + "/").pathname} alt="Animated demonstration of MOSAIC's autoregressive molecular generation process" style="width: 100%; border-radius: 0.5rem;" />
-  <Fragment slot="caption">**Autoregressive generation demo.** MOSAIC generates a molecule by sequentially predicting tokens that encode hierarchical structure, atom types, and bond connectivity.</Fragment>
-</Figure>
 
 ## BibTeX Citation
 
