@@ -55,7 +55,7 @@ main .katex-display {
 /* NeurIPS-style tables */
 .neurips-table {
   border-collapse: collapse;
-  font-size: 0.7rem;
+  font-size: 0.5rem;
   width: 100%;
   max-width: 50rem;
   margin-inline: auto;
@@ -63,17 +63,13 @@ main .katex-display {
 }
 .neurips-table thead th {
   font-weight: 700;
-  padding: 0.3rem 0.25rem;
+  padding: 0.15rem 0.1rem;
   border-top: 2px solid #222;
   border-bottom: 1px solid #222;
   white-space: nowrap;
 }
 .neurips-table thead th:first-child {
   width: 18%;
-  position: sticky;
-  left: 0;
-  background: white;
-  z-index: 1;
 }
 .neurips-table thead th[colspan] {
   border-bottom: none;
@@ -83,21 +79,15 @@ main .katex-display {
   border-top: none;
   border-bottom: 1px solid #222;
   font-weight: 600;
-  font-size: 0.65rem;
+  font-size: 0.45rem;
 }
 .neurips-table .group-separator {
   border-left: 2px solid #ccc;
 }
 
 .neurips-table tbody td {
-  padding: 0.25rem 0.25rem;
+  padding: 0.1rem 0.1rem;
   white-space: nowrap;
-}
-.neurips-table tbody td:first-child {
-  position: sticky;
-  left: 0;
-  background: white;
-  z-index: 1;
 }
 .neurips-table tbody td:first-child,
 .neurips-table thead th:first-child {
@@ -120,17 +110,12 @@ main .katex-display {
 .neurips-table caption {
   caption-side: top;
   text-align: left;
-  font-size: 0.8rem;
+  font-size: 0.65rem;
   margin-bottom: 0.5rem;
   line-height: 1.4;
 }
 .neurips-table caption strong {
   font-weight: 700;
-}
-
-[data-theme="dark"] .neurips-table thead th:first-child,
-[data-theme="dark"] .neurips-table tbody td:first-child {
-  background: #18181b;
 }
 
 @media (min-width: 640px) {
@@ -146,13 +131,6 @@ main .katex-display {
   }
   .neurips-table tbody td {
     padding: 0.3rem 0.5rem;
-  }
-  .neurips-table thead th:first-child,
-  .neurips-table tbody td:first-child,
-  [data-theme="dark"] .neurips-table thead th:first-child,
-  [data-theme="dark"] .neurips-table tbody td:first-child {
-    position: static;
-    background: transparent;
   }
   .neurips-table caption {
     font-size: 0.9rem;
