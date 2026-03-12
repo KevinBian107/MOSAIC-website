@@ -83,6 +83,11 @@ Given a coarsened hierarchy, we serialize it into a flat token sequence for auto
   <Fragment slot="caption">**Hierarchical tokenization schemes** illustrated on cholesterol. **(A)** H-SENT partitions the molecular graph into community blocks (colored regions) with explicit cross-community edges. **(B)** HDT arranges atoms under partition nodes in a DFS tree; orange curves show graph edges, gray arrows trace the traversal. **(C)** HDTC adds typed community nodes (R = ring, F = functional group, S = singleton) and blue super-edges between communities.</Fragment>
 </Figure>
 
+<Figure>
+  <Picture slot="figure" src={coarsening} alt="Visualization of MOSAIC coarsening strategies showing how molecular graphs are decomposed into hierarchical communities" />
+  <Fragment slot="caption">**Coarsening strategies.** Visualization of how different coarsening methods (spectral clustering, HAC, motif-aware) decompose molecular graphs into hierarchical communities. Each colored region represents a community of atoms grouped together during the coarsening step.</Fragment>
+</Figure>
+
 ## Results
 
 We evaluate unconditional generation on **MOSES** (~1M drug-like molecules, 10–26 heavy atoms) and **COCONUT** (~5K complex natural products, 30–100 heavy atoms, ≥4 rings). All models use a GPT-2 backbone (12 layers, 768 hidden, 12 heads, ~85M parameters) trained with identical hyperparameters. We generate 500 molecules per model and evaluate against **5,000 randomly sampled references from the combined train+test set**. We report four representative tokenizers: SENT (flat baseline), H-SENT MC (hierarchical flat-walk), HDT MC (motif-community hierarchy), and HDTC (typed compositional). **Bold** = best among the four per dataset.
@@ -646,15 +651,6 @@ On **MOSES** (simple drug-like molecules), hierarchy provides modest but consist
 
 </details>
 
-<details>
-<summary><strong>Coarsening Visualization</strong></summary>
-
-<Figure>
-  <Picture slot="figure" src={coarsening} alt="Visualization of MOSAIC coarsening strategies showing how molecular graphs are decomposed into hierarchical communities" />
-  <Fragment slot="caption">**Coarsening strategies.** Visualization of how different coarsening methods (spectral clustering, HAC, motif-aware) decompose molecular graphs into hierarchical communities. Each colored region represents a community of atoms grouped together during the coarsening step.</Fragment>
-</Figure>
-
-</details>
 
 ## Discussion
 
