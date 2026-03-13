@@ -87,6 +87,9 @@ const prefix = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
         {links && <Links links={links} />}
       </div>
     </header>
+    <div class="mx-auto mb-8 max-w-[50rem] px-4 sm:px-6">
+      <img src={prefix + "mosaic_logo.gif"} alt="MOSAIC logo animation" class="w-full rounded-lg" />
+    </div>
     <TableOfContents sections={tocSections} />
     <main>
       <Content components={{ table: Table }} />
