@@ -11,7 +11,7 @@ const title = "MOSAIC Visualizer";
 <html class="bg-white" lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="description" content="MOSAIC: Autoregressive generation visualizer for H-SENT, HDT, and HDTC tokenizers" />
+    <meta name="description" content="MOSAIC: HDT (Hierarchical Depth Traversal) tokenization visualizer" />
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
     <link rel="icon" type="image/svg+xml" href={prefix + "favicon.svg"} />
@@ -23,176 +23,61 @@ const title = "MOSAIC Visualizer";
   </head>
   <body class="font-(family-name:--font-noto-sans) text-zinc-800 m-0 p-0">
 
-    <header class="text-center pt-12 pb-8 px-6">
+    <header class="text-center pt-12 pb-6 px-6">
       <a href={prefix} class="text-sm text-blue-500 hover:underline mb-4 inline-block">&larr; Back to paper</a>
-      <h1 class="text-2xl font-medium mt-2 mb-3 sm:text-4xl">Generation Visualizer</h1>
+      <h1 class="text-2xl font-medium mt-2 mb-3 sm:text-4xl">HDT Visualizer</h1>
       <p class="text-zinc-500 text-sm max-w-2xl mx-auto leading-relaxed sm:text-lg">
-        Watch MOSAIC build molecules token-by-token. Each tokenizer encodes a different level of hierarchical structure — from flat partition blocks to typed compositional trees.
+        <strong>HDT</strong> — Hierarchical Depth Traversal — coarsens the molecular graph into communities and serializes the resulting hierarchy with a single depth-first walk, so cross-community edges become ordinary back-edges in the token stream.
       </p>
     </header>
 
     <main class="max-w-7xl mx-auto px-6 pb-16">
-      <!-- Tab navigation -->
-      <div class="flex justify-center gap-1 mb-8" id="tab-nav">
-        <button class="tab-btn active" data-tab="hsent">H-SENT</button>
-        <button class="tab-btn" data-tab="hdt">HDT</button>
-        <button class="tab-btn" data-tab="hdtc">HDTC</button>
-        <button class="tab-btn" data-tab="all">Side by Side</button>
-      </div>
-
-      <!-- Tab panels -->
-      <div id="panel-hsent" class="tab-panel active">
-        <div class="panel-card">
-          <div class="panel-header">
-            <h2>H-SENT <span class="panel-subtitle">Hierarchical SENT</span></h2>
-            <p>Partition blocks with explicit cross-community edges. Each community's atoms are serialized via a SENT walk with back-edge brackets.</p>
-          </div>
-          <img src={prefix + "demo_hsent.gif"} alt="H-SENT autoregressive generation" class="demo-gif" />
-        </div>
-      </div>
-
-      <div id="panel-hdt" class="tab-panel">
-        <div class="panel-card">
-          <div class="panel-header">
-            <h2>HDT <span class="panel-subtitle">Hierarchical DFS Tokenization</span></h2>
-            <p>Full tree structure via depth-first traversal with ENTER/EXIT nesting tokens. Intra- and inter-community edges are captured as back-edges.</p>
-          </div>
-          <img src={prefix + "demo_hdt.gif"} alt="HDT autoregressive generation" class="demo-gif" />
-        </div>
-      </div>
-
-      <div id="panel-hdtc" class="tab-panel">
-        <div class="panel-card">
-          <div class="panel-header">
-            <h2>HDTC <span class="panel-subtitle">HDT with Composition</span></h2>
-            <p>The most expressive scheme: typed community nodes (ring, functional group, singleton), super-graph of inter-community bonds, and atom-level detail within each block.</p>
-          </div>
-          <img src={prefix + "demo_hdtc.gif"} alt="HDTC autoregressive generation" class="demo-gif" />
-        </div>
-      </div>
-
-      <div id="panel-all" class="tab-panel">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div class="panel-card">
-            <div class="panel-header compact">
-              <h3>H-SENT</h3>
-            </div>
-            <img src={prefix + "demo_hsent.gif"} alt="H-SENT autoregressive generation" class="demo-gif" />
-          </div>
-          <div class="panel-card">
-            <div class="panel-header compact">
-              <h3>HDT</h3>
-            </div>
-            <img src={prefix + "demo_hdt.gif"} alt="HDT autoregressive generation" class="demo-gif" />
-          </div>
-          <div class="panel-card">
-            <div class="panel-header compact">
-              <h3>HDTC</h3>
-            </div>
-            <img src={prefix + "demo_hdtc.gif"} alt="HDTC autoregressive generation" class="demo-gif" />
-          </div>
+      <div class="panel-card">
+        <video
+          src={prefix + "demo_hdt.mp4"}
+          autoplay
+          loop
+          muted
+          playsinline
+          preload="auto"
+          controls
+          aria-label="HDT hierarchical depth traversal — token-by-token autoregressive generation"
+          class="hero-image"
+        ></video>
+        <div class="panel-caption">
+          Watch HDT build a molecule token-by-token. Root → community partitions → atoms. Solid orange curves are intra-community graph edges; dashed orange curves are cross-community edges (still encoded as back-edges during the DFS, with no separate wiring section). Black arrows trace the DFS traversal order.
         </div>
       </div>
     </main>
 
     <footer class="text-center pb-8 text-sm text-zinc-400">
-      <a href={prefix} class="text-blue-500 hover:underline">MOSAIC</a> &mdash; Multi-scale Organization via Structural Abstraction In Composition
+      <a href={prefix} class="text-blue-500 hover:underline">MOSAIC</a> &mdash; Compositional Abstraction for Autoregressive Graph Generation
     </footer>
 
     <style>
-      .tab-btn {
-        padding: 0.4rem 0.75rem;
-        font-size: 0.75rem;
-        font-weight: 500;
-        color: #6b7280;
-        background: transparent;
-        border: 1px solid #e5e7eb;
-        border-radius: 9999px;
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-      .tab-btn:hover {
-        color: #374151;
-        border-color: #d1d5db;
-        background: #f9fafb;
-      }
-      .tab-btn.active {
-        color: #fff;
-        background: #2563eb;
-        border-color: #2563eb;
-      }
-      .tab-panel {
-        display: none;
-      }
-      .tab-panel.active {
-        display: block;
-      }
       .panel-card {
         background: #fff;
         border: 1px solid #e5e7eb;
         border-radius: 0.75rem;
         overflow: hidden;
       }
-      @media (min-width: 640px) {
-        .tab-btn {
-          padding: 0.5rem 1.25rem;
-          font-size: 0.875rem;
-        }
-      }
-      .panel-header {
-        padding: 1rem 1rem 0.75rem;
-      }
-      @media (min-width: 640px) {
-        .panel-header {
-          padding: 1.5rem 2rem 1rem;
-        }
-      }
-      .panel-header.compact {
-        padding: 1rem 1.25rem 0.5rem;
-      }
-      .panel-header h2 {
-        font-size: 1.5rem;
-        font-weight: 600;
-        margin: 0 0 0.5rem;
-      }
-      .panel-header h3 {
-        font-size: 1.125rem;
-        font-weight: 600;
-        margin: 0;
-      }
-      .panel-subtitle {
-        font-weight: 400;
-        color: #9ca3af;
-        font-size: 1rem;
-      }
-      .panel-header p {
-        color: #6b7280;
-        font-size: 0.9rem;
-        line-height: 1.5;
-        margin: 0;
-      }
-      .demo-gif {
+      .hero-image {
         width: 100%;
         display: block;
+      }
+      .panel-caption {
+        padding: 1rem 1.25rem 1.25rem;
+        color: #4b5563;
+        font-size: 0.95rem;
+        line-height: 1.55;
         border-top: 1px solid #f3f4f6;
       }
+      @media (min-width: 640px) {
+        .panel-caption {
+          padding: 1.25rem 2rem 1.5rem;
+          font-size: 1rem;
+        }
+      }
     </style>
-
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const buttons = document.querySelectorAll<HTMLButtonElement>(".tab-btn");
-        const panels = document.querySelectorAll<HTMLElement>(".tab-panel");
-
-        buttons.forEach((btn) => {
-          btn.addEventListener("click", () => {
-            const tab = btn.getAttribute("data-tab")!;
-            buttons.forEach((b) => b.classList.remove("active"));
-            panels.forEach((p) => p.classList.remove("active"));
-            btn.classList.add("active");
-            document.getElementById(`panel-${tab}`)!.classList.add("active");
-          });
-        });
-      });
-    </script>
   </body>
 </html>

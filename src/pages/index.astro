@@ -7,22 +7,11 @@ import Notes from "../components/Notes.astro";
 import type { Author, Note, Link } from "../types/types";
 
 import Table from "../components/Table.astro";
-import TableOfContents from "../components/TableOfContents.astro";
 
 import "../styles/global.css";
 import "katex/dist/katex-swap.css";
 
 import { Content, frontmatter } from "../paper.mdx";
-
-const tocSections = [
-  { id: "abstract", label: "Abstract" },
-  { id: "introduction", label: "Introduction" },
-  { id: "pipeline-overview", label: "Pipeline" },
-  { id: "coarsening-strategies", label: "Coarsening" },
-  { id: "tokenization-schemes", label: "Tokenization" },
-  { id: "results", label: "Results" },
-  { id: "discussion", label: "Discussion" },
-];
 
 interface Frontmatter {
   title: string;
@@ -81,7 +70,6 @@ const prefix = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
       <h1 class="text-3xl font-medium sm:text-5xl">{title}</h1>
       <div class="flex flex-col items-center gap-3 sm:gap-6">
         <Authors authors={authors} />
-        <div class="text-sm text-zinc-600 sm:text-lg dark:text-zinc-400">Halıcıoğlu Data Science Institute, UC San Diego</div>
         {conference && <div>{conference}</div>}
         {notes && <Notes notes={notes} />}
         {links && <Links links={links} />}
@@ -90,7 +78,6 @@ const prefix = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
     <div class="mx-auto mb-8 max-w-[50rem] px-4 sm:px-6">
       <img src={prefix + "mosaic_logo.gif"} alt="MOSAIC logo animation" class="w-full rounded-lg" />
     </div>
-    <TableOfContents sections={tocSections} />
     <main>
       <Content components={{ table: Table }} />
     </main>

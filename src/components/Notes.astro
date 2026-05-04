@@ -6,15 +6,38 @@ interface Props {
 }
 
 const { notes } = Astro.props;
+
+// Split notes into:
+//   - "footnotes" (non-numeric symbols, e.g. *, †) — rendered together on one
+//     row beneath the affiliations.
+//   - "affiliations" (numeric symbols 1, 2, ...) — each rendered on its own
+//     row, in numeric order.
+const isFootnote = (n: Note) => !/^\d+$/.test(n.symbol);
+const footnotes = notes.filter(isFootnote);
+const affiliations = notes
+  .filter((n) => !isFootnote(n))
+  .sort((a, b) => parseInt(a.symbol) - parseInt(b.symbol));
 ---
 
-<div class="text-center text-sm">
+<div class="flex flex-col items-center gap-1 text-sm">
   {
-    // prettier-ignore
-    notes.map((note, index, array) =>
-      <span>
-        <sup>{note.symbol}</sup>{note.text}{index < array.length - 1 ? "," : ""}
-      </span>
+    affiliations.map((note) => (
+      <div>
+        <sup>{note.symbol}</sup>
+        {note.text}
+      </div>
+    ))
+  }
+  {
+    footnotes.length > 0 && (
+      <div class="flex flex-row flex-wrap items-center justify-center gap-x-4">
+        {footnotes.map((note) => (
+          <span>
+            <sup>{note.symbol}</sup>
+            {note.text}
+          </span>
+        ))}
+      </div>
     )
   }
 </div>
