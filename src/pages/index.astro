@@ -1,92 +1,152 @@
 ---
 import { Font } from "astro:assets";
-
-import Links from "../components/Links.astro";
-import Authors from "../components/Authors.astro";
-import Notes from "../components/Notes.astro";
-import type { Author, Note, Link } from "../types/types";
+import { Icon } from "astro-icon/components";
 
 import Table from "../components/Table.astro";
+import TableOfContents from "../components/TableOfContents.astro";
+import HeroGravity from "../components/interactive/HeroGravity.tsx";
 
 import "../styles/global.css";
 import "katex/dist/katex-swap.css";
 
-import { Content, frontmatter } from "../paper.mdx";
+import { Content } from "../content.mdx";
 
-interface Frontmatter {
-  title: string;
-  authors: Author[];
-  conference?: string;
-  notes?: Note[];
-  links?: Link[];
-  description?: string;
-  favicon: string;
-  thumbnail?: string;
-  theme?: "device" | "light" | "dark";
-}
+const title = "Beyond Flat Walks";
+const subtitle = "Compositional Abstraction for Autoregressive Graph Generation";
+const description =
+  "A hierarchical graph abstraction and coarse-to-fine tokenization for autoregressive graph generation: coarsen, serialize, and decode exactly, with a standard causal transformer.";
 
-const {
-  title,
-  authors,
-  conference,
-  notes,
-  links,
-  description,
-  favicon,
-  thumbnail,
-  theme = "device",
-} = frontmatter as Frontmatter;
+const authors = [
+  { name: "Kaiwen Bian", aff: "1,2", mark: "*" },
+  { name: "Andrew H. Yang", aff: "1", mark: "*" },
+  { name: "Ali Parviz", aff: "1", mark: "" },
+  { name: "Gal Mishne", aff: "1", mark: "†" },
+  { name: "Yusu Wang", aff: "1", mark: "†" },
+];
+const affiliations = ["University of California San Diego", "Salk Institute for Biological Studies"];
 
 const baseUrl = import.meta.env.BASE_URL;
 const prefix = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
+
+const links = [
+  { name: "Paper", url: "", icon: "ri:file-pdf-2-line", soon: true },
+  { name: "Code", url: "https://github.com/KevinBian107/MOSAIC", icon: "ri:github-line" },
+  { name: "Hugging Face", url: "", icon: "ri:robot-2-line", soon: true },
+  { name: "Citation", url: "#citation", icon: "ri:double-quotes-l" },
+];
+
+const tocSections = [
+  { id: "idea", label: "Flat walks vs. hierarchy" },
+  { id: "pipeline", label: "The pipeline" },
+  { id: "axes", label: "Three design axes" },
+  { id: "results", label: "Molecular results" },
+  { id: "randomization", label: "Closing the V.U.N. gap" },
+  { id: "beyond", label: "Beyond molecules" },
+  { id: "alignment", label: "When hierarchy misleads" },
+  { id: "context", label: "In context" },
+  { id: "samples", label: "Generated samples" },
+  { id: "takeaways", label: "Takeaways" },
+  { id: "citation", label: "Citation" },
+];
 ---
 
 <!doctype html>
-<html class="bg-white dark:bg-zinc-900" lang="en" data-theme={theme}>
+<html class="bg-white" lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
-    {description && <meta name="description" content={description} />}
+    <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
-
-    <link rel="icon" type="image/svg+xml" href={prefix + favicon} />
-
-    <meta property="og:title" content={title} />
-    {description && <meta property="og:description" content={description} />}
+    <link rel="icon" type="image/svg+xml" href={prefix + "favicon.svg"} />
+    <meta property="og:title" content={`${title}: ${subtitle}`} />
+    <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
-    {thumbnail && <meta property="og:image" content={prefix + thumbnail} />}
-
-    <Font
-      cssVariable="--font-noto-sans"
-      preload={[{ subset: "latin", style: "normal" }]}
-    />
-
-    <title>{title}</title>
+    <Font cssVariable="--font-noto-sans" preload={[{ subset: "latin", style: "normal" }]} />
+    <title>{`${title}: ${subtitle}`}</title>
   </head>
   <body
-    class="prose prose-sm sm:prose-lg prose-zinc dark:prose-invert prose-a:text-blue-500 prose-a:dark:text-blue-300 prose-a:no-underline prose-a:hover:underline prose-a:font-normal prose-code:bg-zinc-200 prose-code:dark:bg-zinc-800 prose-code:text-zinc-800 prose-code:dark:text-zinc-200 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:font-medium prose-code:before:content-none prose-code:after:content-none max-w-none pt-16 pb-6 font-(family-name:--font-noto-sans)"
+    class="prose prose-sm sm:prose-lg prose-zinc prose-a:text-blue-600 prose-a:no-underline prose-a:hover:underline prose-a:font-normal prose-code:bg-zinc-100 prose-code:text-zinc-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:font-medium prose-code:before:content-none prose-code:after:content-none max-w-none pb-10 font-(family-name:--font-noto-sans)"
   >
-    <header class="mx-auto mb-8 max-w-[50rem] px-4 text-center sm:mb-12 sm:px-6">
-      <h1 class="text-3xl font-medium sm:text-5xl">{title}</h1>
-      <div class="flex flex-col items-center gap-3 sm:gap-6">
-        <Authors authors={authors} />
-        {conference && <div>{conference}</div>}
-        {notes && <Notes notes={notes} />}
-        {links && <Links links={links} />}
+    <header class="not-prose bg-zinc-950 text-white">
+      <div class="mx-auto max-w-[72rem] px-6 pt-14 pb-12 sm:pt-20">
+        <div class="text-center">
+          <h1 class="mx-auto max-w-5xl text-3xl leading-tight font-semibold sm:text-5xl">
+            {title}:<br /><span class="text-zinc-300">{subtitle}</span>
+          </h1>
+          <div class="mx-auto mt-6 flex max-w-4xl flex-wrap justify-center gap-x-5 gap-y-1.5 text-base text-zinc-200 sm:text-lg">
+            {
+              authors.map((a) => (
+                <span>
+                  {a.name}
+                  <sup class="ml-0.5 text-xs text-zinc-400">
+                    {a.mark}
+                    {a.aff}
+                  </sup>
+                </span>
+              ))
+            }
+          </div>
+          <div class="mx-auto mt-3 flex max-w-4xl flex-wrap justify-center gap-x-4 gap-y-1 text-sm text-zinc-400">
+            {
+              affiliations.map((a, i) => (
+                <span>
+                  <sup class="mr-0.5">{i + 1}</sup>
+                  {a}
+                </span>
+              ))
+            }
+          </div>
+          <div class="mt-1.5 text-xs text-zinc-500">* Equal contribution &nbsp;·&nbsp; † Equal advising</div>
+          <div class="mt-4 text-sm text-zinc-300 sm:text-base">Fortieth Conference on Neural Information Processing Systems (NeurIPS 2026), Main Track</div>
+          <div class="mt-6 flex flex-wrap justify-center gap-2">
+            {
+              links.map((l) =>
+                l.soon ? (
+                  <span class="flex items-center gap-2 rounded-full bg-zinc-800 px-4 py-1.5 text-sm text-zinc-400 sm:px-5 sm:py-2 sm:text-base">
+                    <Icon name={l.icon} />
+                    {l.name} <span class="text-xs">(coming soon)</span>
+                  </span>
+                ) : (
+                  <a href={l.url} class="flex items-center gap-2 rounded-full bg-white px-4 py-1.5 text-sm text-zinc-900 hover:bg-zinc-200 sm:px-5 sm:py-2 sm:text-base">
+                    <Icon name={l.icon} />
+                    {l.name}
+                  </a>
+                ),
+              )
+            }
+          </div>
+        </div>
+
+        <div class="mt-12 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+          <div>
+            <h2 class="mb-3 text-lg font-semibold text-zinc-100">Abstract</h2>
+            <p class="text-justify text-[0.95rem] leading-relaxed text-zinc-300">
+              Autoregressive graph generators typically linearize graphs through flat node-edge walks, which can obscure higher-order structure in large, complex
+              graphs. We introduce a <b class="text-white">hierarchical graph abstraction</b> and <b class="text-white">coarse-to-fine generation pipeline</b> that
+              separates coarsening, tokenization, and decoding. This exposes three design axes: community coarsening, hierarchical tokenization, and order
+              randomization. Across these axes, traversal-based hierarchy consistently improves distributional and structural fidelity, while its V.U.N. cost depends
+              strongly on the coarsening and randomization policy. In particular, the fidelity–V.U.N. trade-off observed under within-community randomization is
+              substantially reduced when traversal order is randomized across the full hierarchy. With a fixed backbone, training recipe, and matched training time
+              across five molecular and four non-molecular benchmarks, hierarchical serialization yields consistent distributional and structural gains on all
+              molecular datasets, while the non-molecular results show that these gains depend on how well the supplied hierarchy aligns with structure in the target
+              distribution. Together, these results characterize when and how hierarchical serialization benefits autoregressive graph generation.
+            </p>
+          </div>
+          <div>
+            <HeroGravity client:load base={baseUrl} />
+          </div>
+        </div>
       </div>
     </header>
-    <div class="mx-auto mb-8 max-w-[50rem] px-4 sm:px-6">
-      <img src={prefix + "mosaic_logo.gif"} alt="MOSAIC logo animation" class="w-full rounded-lg" />
-    </div>
-    <main>
+
+    <TableOfContents sections={tocSections} />
+    <main class="pt-6">
       <Content components={{ table: Table }} />
     </main>
-    <footer class="mx-auto max-w-[50rem] px-6 text-center">
-      <p class="prose-sm text-center">
-        Built with <a
-          href="https://research-template.roman.technology"
-          rel="nofollow">Roman Hauksson-Neill's project page template</a
-        >
+    <footer class="mx-auto mt-16 max-w-[50rem] px-6 text-center">
+      <p class="prose-sm text-center text-zinc-400">
+        Every animation on this page is driven by the outputs of the coarseners and tokenizers in the <a href="https://github.com/KevinBian107/MOSAIC">code
+        release</a>. Built with <a href="https://research-template.roman.technology" rel="nofollow">Roman Hauksson-Neill's project page template</a>.
       </p>
     </footer>
   </body>

@@ -1,0 +1,184 @@
+import Wide from "./components/Wide.astro";
+import GenerationGallery from "./components/interactive/GenerationGallery.tsx";
+import FlatVsHier from "./components/interactive/FlatVsHier.tsx";
+import PipelineExplorer from "./components/interactive/PipelineExplorer.tsx";
+import CoarseningExplorer from "./components/interactive/CoarseningExplorer.tsx";
+import RandomizationExplorer from "./components/interactive/RandomizationExplorer.tsx";
+import ResultsChart from "./components/interactive/ResultsChart.tsx";
+import GraphZoo from "./components/interactive/GraphZoo.tsx";
+import SbmAlignment from "./components/interactive/SbmAlignment.tsx";
+import LiteratureTables from "./components/interactive/LiteratureTables.tsx";
+
+export const base = import.meta.env.BASE_URL;
+
+<h2 id="idea">A flat walk hides the structure a graph is built from</h2>
+
+To generate graphs with a language model, you first have to write a graph down as a sentence. The standard sentence is a **flat walk**: start at a node, step from neighbor to neighbor, and whenever the walk returns to a node it has already written, record a bracket of back-edges. This is lossless and efficient, and on small molecules it works well. But nothing in the walk knows what a ring, a functional group, or a community is. That structure is left implicit in the token stream, and the model has to rediscover it on its own.
+
+We ask whether the sentence itself can carry the structure. Everything else is held fixed: the same causal transformer, the same training recipe, and matched training time. Only the way the graph is written down changes. The figure below plays the two serializations of one molecule side by side.
+
+<Wide n={1} title="One molecule, two sentences.">
+  <FlatVsHier client:visible base={base} />
+  <Fragment slot="caption">
+    The flat SENT walk and the hierarchical HDT traversal of the same molecule, played in lockstep from the actual tokenizer output (atom- and bond-type tokens omitted). In both panels atoms take the color of their Motif-Community community, and the bar under each panel lists the community of each emitted atom in order. The walk weaves between ring systems, so communities are interleaved throughout the sequence. HDT finishes each community before opening the next, so they arrive as contiguous blocks, announced by an [ENTER] token. Hover an atom to find it in both tapes.
+  </Fragment>
+</Wide>
+
+The intuition is **coarse before fine**. Every hierarchical tokenizer we study emits the higher-level community structure before the atom-level detail inside it, so when the model has to place an atom, it has already written which community that atom belongs to. A fine-to-coarse order would defeat the purpose: the model would have to commit to local structure before seeing the organization meant to guide it. The cost is length. Writing the hierarchy down takes tokens, and HDT sequences are roughly twice as long as SENT's, which is why every comparison in the paper matches wall-clock training time rather than steps or epochs.
+
+<h2 id="pipeline">The pipeline: coarsen, serialize, predict, decode</h2>
+
+The framework splits generation into stages that can be studied separately. **Coarsening** builds a partition tree $\mathcal{H}$ from the input graph G. **Tokenization** serializes $\mathcal{H}$ into a flat sequence in coarse-before-fine order. A standard **causal transformer** learns that sequence by next-token prediction, and **decoding** inverts the tokenization exactly, so any syntactically valid sample becomes a graph. All of our contributions concern the serialization; the model is an ordinary GPT-2.
+
+<Wide n={2} title="The coarse-to-fine pipeline, stage by stage.">
+  <PipelineExplorer client:visible base={base} />
+  <Fragment slot="caption">
+    Pick a tab to light up the modules active in each stage. The panels run on real outputs: camptothecin under Motif-Community coarsening (the paper's Figure 1; the HDT tape here is token for token the one in the figure), and for decoding, the novel COCONUT HDT-MC sample of the paper's Figure 2. In "Serialize", the highlighted line of Algorithm 1 follows the token being written, the partition tree marks the open communities, and every bond appears as an orange back-edge arc under the leaves once it has been written. In "Learn", the causal mask shows which tokens are visible (input) when predicting the next one (target).
+  </Fragment>
+</Wide>
+
+Decoding is exact for the encoder–decoder pair: decode ∘ tokenize ∘ coarsen(G) ≅ G, because the partition covers every node and each edge is written exactly once. That is a property of the tokenizer, not a promise about samples: a generated sequence may be malformed, and then it is counted as invalid rather than repaired. Validity is measured for every method, including the flat baseline.
+
+<h2 id="axes">Three design axes</h2>
+
+Separating the stages exposes three independent choices: **how the graph is coarsened**, **how the hierarchy is written into tokens**, and **how the traversal order is randomized during training**. The figures and table below run each axis on real molecules.
+
+### How the graph is coarsened
+
+We use one domain-agnostic strategy everywhere and one chemistry-aware strategy on molecules. **HAC**, hierarchical agglomerative clustering with an adjacency constraint, merges clusters bottom-up only when they share an edge, yielding tight communities of controlled size for any graph. **Motif Community (MC)** detects ring systems with SMARTS queries, merges overlapping rings, and absorbs leftover atoms where it can. Recursion continues until communities fall below a small threshold (τ = 4), so $\mathcal{H}$ is shallow on drug-like molecules (mean depth 1.13 on MOSES) and deeper on large ones (1.86 on Macrocycle).
+
+<Wide n={3} title="Where the communities come from.">
+  <CoarseningExplorer client:visible base={base} />
+  <Fragment slot="caption">
+    Each molecule under the three coarsenings used in the paper, computed by the repository's coarseners. Communities are pulled slightly apart; dashed bonds cross top-level communities and dashed outlines mark nested sub-communities. The icicle shows the partition tree $\mathcal{H}$ level by level. HAC communities need not be recognizable motifs; MC's granularity depends on the motifs present; HDTC's MC+FG partition additionally labels every community as ring, functional group or singleton.
+  </Fragment>
+</Wide>
+
+### How the hierarchy is written into tokens
+
+Given $\mathcal{H}$, the question is how explicit the hierarchy should be in the token stream. **HSENT** declares it: a catalogue of community blocks followed by a separate bipartite section that wires them together. **HDTC** is a typed variant for molecules that labels each block and appends a super-graph of inter-community bonds. **HDT**, the tokenizer we use throughout, traverses it: one depth-first pass in which cross-community bonds are ordinary back-edges, syntactically identical to bonds inside a community.
+
+<div class="not-prose my-6 overflow-x-auto">
+<table class="neurips-table tok-table">
+<caption><strong>Table 1.</strong> Tokenizer characteristics. n, m, c, k are nodes, edges, cross-community edges and top-level communities; length ratios are means over the molecular benchmarks.</caption>
+<thead><tr><th>Tokenizer</th><th>Hierarchy</th><th>Coarsening</th><th>Cross-community edges</th><th>Token cost</th><th>Length vs SENT</th></tr></thead>
+<tbody>
+<tr><td>SENT</td><td>flat (single walk)</td><td>not used</td><td>N/A</td><td>O(n + m)</td><td>1×</td></tr>
+<tr><td>HSENT</td><td>declarative (catalog + wiring)</td><td>any</td><td>explicit bipartite block (i, j)</td><td>O(n + m + c + k²)</td><td>∼3×</td></tr>
+<tr><td class="best">HDT</td><td>traversal-based (DFS of $\mathcal{H}$)</td><td>any</td><td>DFS back-edges (implicit)</td><td>O(n + m)</td><td>∼2×</td></tr>
+<tr><td>HDTC</td><td>traversal-based, typed blocks (R/F/S)</td><td>MC+FG only</td><td>explicit super-graph tuple</td><td>O(n + m + c)</td><td>∼2×</td></tr>
+</tbody>
+</table>
+</div>
+
+Declaring the hierarchy did not pay off. On GuacaMol and MOSES, both HSENT configurations have lower validity and V.U.N. and higher MoleculePGD than the corresponding HDT configurations, and HDTC trails HDT on the same metrics, while HSENT sequences run about 2.9× SENT's length against 1.9× for HDT. One plausible reading: a declarative grammar poses a second prediction problem. A sample can declare a set of communities and then wire them in a way that contradicts the declaration. In HDT there is no separate wiring record to contradict; community membership lives entirely in the [ENTER] / [EXIT] nesting.
+
+### How the order is randomized
+
+A graph admits many valid serializations, and resampling the traversal at every training presentation is free data augmentation. A flat random walk gets this for free: SENT draws a new walk each epoch. A deterministic traversal shows the model one string per graph. We compare two policies that keep the graph and $\mathcal{H}$ fixed. **Within-community randomization (-R)** keeps the stored community order and randomizes the traversal inside each terminal community. **Hierarchy-wide randomization (-FR)** also samples an adjacency-constrained DFS over communities at every level, entering each community through an atom adjacent to the one it was reached from.
+
+<Wide n={4} title="One graph, many sentences.">
+  <RandomizationExplorer client:visible base={base} />
+  <Fragment slot="caption">
+    Resample to draw another serialization of the same molecule under each policy; all samples are produced by the repository's HDT tokenizer with the corresponding policy. Node labels are serialization ids, assigned in first-visit order. Under -R the community entry order (colored row) never changes; under -FR it does, subject to adjacency.
+  </Fragment>
+</Wide>
+
+<h2 id="results">Hierarchy improves distributional fidelity on every molecular benchmark</h2>
+
+We train the same GPT-2 XS backbone (≈ 11M parameters) on five molecular benchmarks (GuacaMol, MOSES, COCONUT 2.0, a disjoint split of GEOM-Drugs, and Macrocycle) with one training recipe and matched training time, and compare the flat baseline with the two hierarchical configurations fixed in advance, **HDT-HAC-R** and **HDT-HAC-FR**.
+
+<Wide n={5} title="Unconditional generation across the five molecular benchmarks.">
+  <ResultsChart client:visible />
+  <Fragment slot="caption">
+    The paper's Table 3 and Figure 3. Means over generation seeds 42–44 from one checkpoint per model; hover a dataset for values. "Change vs SENT" is signed so that positive is better. Standard deviations, the remaining variants (HDT-MC-R, HDT-MC-FR), the training-sample reference and the novel-only protocol are in the paper's Appendix A.10 and A.12.
+  </Fragment>
+</Wide>
+
+The gap is largest, and most consistent, on the metrics that compare distributions rather than count successes. Against SENT, HDT-HAC-R lowers **FCD by 51.6% to 64.6%** and **MoleculePGD by 34.3% to 86.6%** on all five benchmarks, and improves SNN, fragment similarity and scaffold similarity on all five as well. The margins are large relative to the seed spread: on GuacaMol, FCD falls from 1.799 ± 0.045 to 0.871 ± 0.019, and on Macrocycle, MoleculePGD falls from 0.639 ± 0.003 to 0.085 ± 0.002. All four hierarchical configurations have lower FCD and MoleculePGD than SENT on every benchmark, and the improvements persist when metrics are recomputed only on novel molecules, so they are not explained by reproducing training molecules. SENT keeps a slightly higher internal diversity on all five benchmarks, by less than 0.02.
+
+<h2 id="randomization">Randomizing across the hierarchy closes most of the V.U.N. gap</h2>
+
+Fidelity is not the whole story. Switch the chart above to **V.U.N.** (the fraction of samples that are valid, unique and novel). With within-community randomization, HDT-HAC-R trails SENT by 3.6% on GuacaMol, 4.0% on MOSES, 17.0% on COCONUT 2.0 and 37.2% on Macrocycle, where novelty falls from SENT's 0.999 to 0.658: the model reproduces training molecules more often.
+
+Randomizing the traversal across the whole hierarchy largely removes this cost. Across the two fully randomized configurations the largest V.U.N. deficit is 10.85%, and for HDT-MC-FR it is 2.98%. HDT-MC-FR still improves FCD, MoleculePGD, SNN and fragment similarity over SENT on all five benchmarks, and has slightly higher mean V.U.N. on GuacaMol. A residual deficit remains on Macrocycle (V.U.N. 0.762 for HDT-HAC-FR against SENT's 0.854), carried by validity rather than novelty. How the hierarchy is presented during training matters as much as whether it is present.
+
+<h2 id="beyond">Beyond molecules: hierarchy helps when it matches the data</h2>
+
+The framework only needs a coarsening, so it applies to any graph. On four non-molecular benchmarks, with the same domain-agnostic HAC, the picture is no longer uniform, and that is informative. The figure lets you feel why: turn up the community gravity and see whether the coarsening carves the graph into clean islands or into arbitrary pieces.
+
+<Wide n={6} title="One graph from each non-molecular benchmark, with HAC communities.">
+  <GraphZoo client:visible base={base} />
+  <Fragment slot="caption">
+    A live force-directed layout. The gravity slider attracts every node toward the centroid of its community and pushes communities apart; at zero it is a plain spring layout. Proteins is a held-out D&D graph and Planar a held-out SPECTRE graph; the block-model graphs are drawn from each benchmark's generator law (the SBM draw conditioned on at least three blocks), so their planted blocks are known and can be shown. The cards summarize the paper's Section 4.4 and Tables 14, 15 and 19.
+  </Fragment>
+</Wide>
+
+On **Proteins**, HDT-HAC-R improves V.U.N. by 62.8% over SENT and reaches the lowest MMD Ratio among the methods in the paper's literature table, so the benefit does not depend on a chemical catalogue. On **Sparse SBM** it improves V.U.N. by 59.3% and cuts Degree MMD, Orbit MMD and Ratio by more than 90%. On **Planar**, where there is no community structure to find, both hierarchical configurations are worse than the flat walk on every graph MMD.
+
+<h2 id="alignment">When the hierarchy misleads</h2>
+
+The standard SBM is the instructive failure. Default HAC recovers the planted blocks well at the top level, but keeps splitting: communities averaging about 31 nodes are recursively cut into leaves averaging 2.25 nodes. The resulting model reaches validity 0.926, yet its uniqueness and novelty fall to about 0.41 and its V.U.N. is only 0.276, against SENT's 0.669. High validity alone does not establish successful generation.
+
+<Wide n={7} title="Over-refinement on SBM, and two ways out.">
+  <SbmAlignment client:visible base={base} />
+  <Fragment slot="caption">
+    One graph drawn from the SBM generator law (conditioned on at least three blocks, for legibility) under the three hierarchies of the paper's Tables 18–19 (panel A). Leaf communities are colored individually: with τ = 4 the planted blocks shatter into confetti. Raising the stopping threshold to τ = 44 leaves the blocks intact; the planted hierarchy (PH) is a privileged control that supplies the generator's own memberships during training (generation stays unconditional). Bars give validity, uniqueness, novelty and V.U.N. for -R and -FR; the dashed line is SENT.
+  </Fragment>
+</Wide>
+
+Two fixes confirm the diagnosis. Raising the stopping threshold to τ = 44 raises V.U.N. to 0.709 and 0.694 for -R and -FR; the planted hierarchy reaches 0.887 and 0.848. On connected Recursive SBM, HAC with τ = 10 reaches V.U.N.† 0.854 under -R, close to the planted hierarchy's 0.858, whereas -FR stays far below the planted -FR (0.083 against 0.744). The benefit comes from alignment between the hierarchy and the data, and how much of it survives depends on the randomization policy.
+
+<h2 id="context">In context</h2>
+
+For orientation, here are the controlled runs next to published numbers. Rows marked ∗ are transcribed as published; budgets and evaluation lineages differ, so this is placement rather than a superiority claim. The controlled comparison is the one above.
+
+<Wide n={8} title="Placement within the graph-generation literature.">
+  <LiteratureTables client:visible />
+  <Fragment slot="caption">
+    Paper Table 4, laid out following Chen et al. (2025). Our three GPT2-XS rows share one backbone, recipe and matched training time; ∗ marks numbers transcribed from the original publications.
+  </Fragment>
+</Wide>
+
+<h2 id="samples">Generated samples</h2>
+
+Numbers summarize distributions; the samples show what they look like. Below are the unconditional-generation samples from the paper for every benchmark: held-out references, the flat SENT baseline, and our two hierarchical configurations, with each model's headline numbers beside its row.
+
+<Wide n={9} title="Unconditional generation galleries.">
+  <GenerationGallery client:visible base={base} />
+  <Fragment slot="caption">
+    Samples from the paper's Appendix A.19 (Figures 7–15), shown for the reference, SENT, HDT-HAC-R and HDT-HAC-FR rows. Each row holds five deterministic samples drawn without replacement; generated rows use the seed-42 evaluation arm of the corresponding model, and the reference row uses the benchmark's held-out evaluation arm. Numbers beside each row are means over seeds 42–44 from the paper (Table 3 for molecules; Tables 14, 15, 19 and 21 for graphs).
+  </Fragment>
+</Wide>
+
+<h2 id="takeaways">Takeaways</h2>
+
+<div class="not-prose takeaway-grid my-6">
+  <div class="rounded-2xl border border-zinc-200 bg-zinc-50 p-5">
+    <div class="text-xs font-semibold tracking-wider text-sky-700 uppercase">Why it helps</div>
+    <p class="mt-2 text-[15px] leading-relaxed text-zinc-700">Writing the community structure before the atoms puts the graph's organization into the prefix the model conditions on. With a fixed model and matched compute, that alone lowers FCD and MoleculePGD on all five molecular benchmarks.</p>
+  </div>
+  <div class="rounded-2xl border border-zinc-200 bg-zinc-50 p-5">
+    <div class="text-xs font-semibold tracking-wider text-sky-700 uppercase">When it helps</div>
+    <p class="mt-2 text-[15px] leading-relaxed text-zinc-700">When the hierarchy captures structure that is actually present: molecules, proteins, sparse block models. A mismatched coarsening (over-refined SBM) hurts, and with no structure to find (Planar) the benefit disappears.</p>
+  </div>
+  <div class="rounded-2xl border border-zinc-200 bg-zinc-50 p-5">
+    <div class="text-xs font-semibold tracking-wider text-sky-700 uppercase">How to make it help</div>
+    <p class="mt-2 text-[15px] leading-relaxed text-zinc-700">Traverse the hierarchy rather than declare it (HDT over HSENT / HDTC), randomize the traversal across the whole hierarchy (-FR) to recover V.U.N., and pick a coarsening whose granularity fits the domain.</p>
+  </div>
+</div>
+
+### Limitations
+
+Hierarchy has a computational cost. HDT's lossless coarse-before-fine encoding lengthens sequences by roughly 2× over SENT on small molecules and more on large graphs, so the same backbone spends roughly 4× the attention memory and compute; at matched training time the hierarchical variants take between a third and two-thirds of SENT's optimizer updates. The benefit also depends on the coarsening: a coarsening has to be assessed for each domain, and hierarchies do not transfer across datasets. Finally, a residual V.U.N. deficit remains on Macrocycle even with full randomization.
+
+<h2 id="citation">Citation</h2>
+
+```bibtex
+@inproceedings{bian2026beyond,
+  title     = {{Beyond Flat Walks: Compositional Abstraction for Autoregressive Graph Generation}},
+  author    = {Bian, Kaiwen and Yang, Andrew H. and Parviz, Ali and Mishne, Gal and Wang, Yusu},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2026}
+}
+```
