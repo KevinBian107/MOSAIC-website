@@ -1,0 +1,974 @@
+[
+ {
+  "key": "guacamol",
+  "label": "GuacaMol",
+  "kind": "molecule",
+  "figure": 7,
+  "rows": [
+   {
+    "label": "Reference",
+    "cells": [
+     {
+      "src": "guacamol/reference_0.webp",
+      "failed": false
+     },
+     {
+      "src": "guacamol/reference_1.webp",
+      "failed": false
+     },
+     {
+      "src": "guacamol/reference_2.webp",
+      "failed": false
+     },
+     {
+      "src": "guacamol/reference_3.webp",
+      "failed": false
+     },
+     {
+      "src": "guacamol/reference_4.webp",
+      "failed": false
+     }
+    ]
+   },
+   {
+    "label": "SENT",
+    "cells": [
+     {
+      "src": "guacamol/sent_0.webp",
+      "failed": false
+     },
+     {
+      "src": "guacamol/sent_1.webp",
+      "failed": false
+     },
+     {
+      "src": "guacamol/sent_2.webp",
+      "failed": false
+     },
+     {
+      "src": "guacamol/sent_3.webp",
+      "failed": false
+     },
+     {
+      "src": "guacamol/sent_4.webp",
+      "failed": false
+     }
+    ]
+   },
+   {
+    "label": "HDT-HAC-R",
+    "cells": [
+     {
+      "src": "guacamol/hdt-hac-r_0.webp",
+      "failed": false
+     },
+     {
+      "src": "guacamol/hdt-hac-r_1.webp",
+      "failed": false
+     },
+     {
+      "src": "guacamol/hdt-hac-r_2.webp",
+      "failed": false
+     },
+     {
+      "src": "guacamol/hdt-hac-r_3.webp",
+      "failed": false
+     },
+     {
+      "src": "guacamol/hdt-hac-r_4.webp",
+      "failed": false
+     }
+    ]
+   },
+   {
+    "label": "HDT-HAC-FR",
+    "cells": [
+     {
+      "src": "guacamol/hdt-hac-fr_0.webp",
+      "failed": false
+     },
+     {
+      "src": "guacamol/hdt-hac-fr_1.webp",
+      "failed": false
+     },
+     {
+      "src": "guacamol/hdt-hac-fr_2.webp",
+      "failed": false
+     },
+     {
+      "src": "guacamol/hdt-hac-fr_3.webp",
+      "failed": false
+     },
+     {
+      "src": "guacamol/hdt-hac-fr_4.webp",
+      "failed": false
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "key": "moses",
+  "label": "MOSES",
+  "kind": "molecule",
+  "figure": 8,
+  "rows": [
+   {
+    "label": "Reference",
+    "cells": [
+     {
+      "src": "moses/reference_0.webp",
+      "failed": false
+     },
+     {
+      "src": "moses/reference_1.webp",
+      "failed": false
+     },
+     {
+      "src": "moses/reference_2.webp",
+      "failed": false
+     },
+     {
+      "src": "moses/reference_3.webp",
+      "failed": false
+     },
+     {
+      "src": "moses/reference_4.webp",
+      "failed": false
+     }
+    ]
+   },
+   {
+    "label": "SENT",
+    "cells": [
+     {
+      "src": "moses/sent_0.webp",
+      "failed": false
+     },
+     {
+      "src": "moses/sent_1.webp",
+      "failed": false
+     },
+     {
+      "src": "moses/sent_2.webp",
+      "failed": false
+     },
+     {
+      "src": "moses/sent_3.webp",
+      "failed": false
+     },
+     {
+      "src": "moses/sent_4.webp",
+      "failed": false
+     }
+    ]
+   },
+   {
+    "label": "HDT-HAC-R",
+    "cells": [
+     {
+      "src": "moses/hdt-hac-r_0.webp",
+      "failed": false
+     },
+     {
+      "src": "moses/hdt-hac-r_1.webp",
+      "failed": false
+     },
+     {
+      "src": "moses/hdt-hac-r_2.webp",
+      "failed": false
+     },
+     {
+      "src": "moses/hdt-hac-r_3.webp",
+      "failed": false
+     },
+     {
+      "src": "moses/hdt-hac-r_4.webp",
+      "failed": false
+     }
+    ]
+   },
+   {
+    "label": "HDT-HAC-FR",
+    "cells": [
+     {
+      "src": "moses/hdt-hac-fr_0.webp",
+      "failed": false
+     },
+     {
+      "src": "moses/hdt-hac-fr_1.webp",
+      "failed": false
+     },
+     {
+      "src": "moses/hdt-hac-fr_2.webp",
+      "failed": false
+     },
+     {
+      "src": "moses/hdt-hac-fr_3.webp",
+      "failed": false
+     },
+     {
+      "src": "moses/hdt-hac-fr_4.webp",
+      "failed": false
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "key": "coconut2",
+  "label": "COCONUT 2.0",
+  "kind": "molecule",
+  "figure": 9,
+  "rows": [
+   {
+    "label": "Reference",
+    "cells": [
+     {
+      "src": "coconut2/reference_0.webp",
+      "failed": false
+     },
+     {
+      "src": "coconut2/reference_1.webp",
+      "failed": false
+     },
+     {
+      "src": "coconut2/reference_2.webp",
+      "failed": false
+     },
+     {
+      "src": "coconut2/reference_3.webp",
+      "failed": false
+     },
+     {
+      "src": "coconut2/reference_4.webp",
+      "failed": false
+     }
+    ]
+   },
+   {
+    "label": "SENT",
+    "cells": [
+     {
+      "src": "coconut2/sent_0.webp",
+      "failed": false
+     },
+     {
+      "src": "coconut2/sent_1.webp",
+      "failed": false
+     },
+     {
+      "src": "coconut2/sent_2.webp",
+      "failed": false
+     },
+     {
+      "src": "coconut2/sent_3.webp",
+      "failed": false
+     },
+     {
+      "src": "coconut2/sent_4.webp",
+      "failed": false
+     }
+    ]
+   },
+   {
+    "label": "HDT-HAC-R",
+    "cells": [
+     {
+      "src": "coconut2/hdt-hac-r_0.webp",
+      "failed": false
+     },
+     {
+      "src": "coconut2/hdt-hac-r_1.webp",
+      "failed": false
+     },
+     {
+      "src": "coconut2/hdt-hac-r_2.webp",
+      "failed": false
+     },
+     {
+      "src": "coconut2/hdt-hac-r_3.webp",
+      "failed": false
+     },
+     {
+      "src": "coconut2/hdt-hac-r_4.webp",
+      "failed": false
+     }
+    ]
+   },
+   {
+    "label": "HDT-HAC-FR",
+    "cells": [
+     {
+      "src": "coconut2/hdt-hac-fr_0.webp",
+      "failed": false
+     },
+     {
+      "src": "coconut2/hdt-hac-fr_1.webp",
+      "failed": false
+     },
+     {
+      "src": "coconut2/hdt-hac-fr_2.webp",
+      "failed": false
+     },
+     {
+      "src": "coconut2/hdt-hac-fr_3.webp",
+      "failed": false
+     },
+     {
+      "src": "coconut2/hdt-hac-fr_4.webp",
+      "failed": false
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "key": "geom_drugs",
+  "label": "GEOM-Drugs",
+  "kind": "molecule",
+  "figure": 10,
+  "rows": [
+   {
+    "label": "Reference",
+    "cells": [
+     {
+      "src": "geom_drugs/reference_0.webp",
+      "failed": false
+     },
+     {
+      "src": "geom_drugs/reference_1.webp",
+      "failed": false
+     },
+     {
+      "src": "geom_drugs/reference_2.webp",
+      "failed": false
+     },
+     {
+      "src": "geom_drugs/reference_3.webp",
+      "failed": false
+     },
+     {
+      "src": "geom_drugs/reference_4.webp",
+      "failed": false
+     }
+    ]
+   },
+   {
+    "label": "SENT",
+    "cells": [
+     {
+      "src": "geom_drugs/sent_0.webp",
+      "failed": false
+     },
+     {
+      "src": "geom_drugs/sent_1.webp",
+      "failed": false
+     },
+     {
+      "src": "geom_drugs/sent_2.webp",
+      "failed": false
+     },
+     {
+      "src": "geom_drugs/sent_3.webp",
+      "failed": false
+     },
+     {
+      "src": "geom_drugs/sent_4.webp",
+      "failed": false
+     }
+    ]
+   },
+   {
+    "label": "HDT-HAC-R",
+    "cells": [
+     {
+      "src": "geom_drugs/hdt-hac-r_0.webp",
+      "failed": false
+     },
+     {
+      "src": "geom_drugs/hdt-hac-r_1.webp",
+      "failed": false
+     },
+     {
+      "src": "geom_drugs/hdt-hac-r_2.webp",
+      "failed": false
+     },
+     {
+      "src": "geom_drugs/hdt-hac-r_3.webp",
+      "failed": false
+     },
+     {
+      "src": "geom_drugs/hdt-hac-r_4.webp",
+      "failed": false
+     }
+    ]
+   },
+   {
+    "label": "HDT-HAC-FR",
+    "cells": [
+     {
+      "src": "geom_drugs/hdt-hac-fr_0.webp",
+      "failed": false
+     },
+     {
+      "src": "geom_drugs/hdt-hac-fr_1.webp",
+      "failed": false
+     },
+     {
+      "src": "geom_drugs/hdt-hac-fr_2.webp",
+      "failed": false
+     },
+     {
+      "src": "geom_drugs/hdt-hac-fr_3.webp",
+      "failed": false
+     },
+     {
+      "src": "geom_drugs/hdt-hac-fr_4.webp",
+      "failed": false
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "key": "macrocycle",
+  "label": "Macrocycle",
+  "kind": "molecule",
+  "figure": 11,
+  "rows": [
+   {
+    "label": "Reference",
+    "cells": [
+     {
+      "src": "macrocycle/reference_0.webp",
+      "failed": false
+     },
+     {
+      "src": "macrocycle/reference_1.webp",
+      "failed": false
+     },
+     {
+      "src": "macrocycle/reference_2.webp",
+      "failed": false
+     },
+     {
+      "src": "macrocycle/reference_3.webp",
+      "failed": false
+     },
+     {
+      "src": "macrocycle/reference_4.webp",
+      "failed": false
+     }
+    ]
+   },
+   {
+    "label": "SENT",
+    "cells": [
+     {
+      "src": "macrocycle/sent_0.webp",
+      "failed": false
+     },
+     {
+      "src": "macrocycle/sent_1.webp",
+      "failed": false
+     },
+     {
+      "src": "macrocycle/sent_2.webp",
+      "failed": false
+     },
+     {
+      "src": "macrocycle/sent_3.webp",
+      "failed": false
+     },
+     {
+      "src": "macrocycle/sent_4.webp",
+      "failed": false
+     }
+    ]
+   },
+   {
+    "label": "HDT-HAC-R",
+    "cells": [
+     {
+      "src": "macrocycle/hdt-hac-r_0.webp",
+      "failed": false
+     },
+     {
+      "src": "macrocycle/hdt-hac-r_1.webp",
+      "failed": false
+     },
+     {
+      "src": "macrocycle/hdt-hac-r_2.webp",
+      "failed": false
+     },
+     {
+      "src": "macrocycle/hdt-hac-r_3.webp",
+      "failed": false
+     },
+     {
+      "src": "macrocycle/hdt-hac-r_4.webp",
+      "failed": false
+     }
+    ]
+   },
+   {
+    "label": "HDT-HAC-FR",
+    "cells": [
+     {
+      "src": "macrocycle/hdt-hac-fr_0.webp",
+      "failed": false
+     },
+     {
+      "src": "macrocycle/hdt-hac-fr_1.webp",
+      "failed": false
+     },
+     {
+      "src": "macrocycle/hdt-hac-fr_2.webp",
+      "failed": false
+     },
+     {
+      "src": "macrocycle/hdt-hac-fr_3.webp",
+      "failed": false
+     },
+     {
+      "src": "macrocycle/hdt-hac-fr_4.webp",
+      "failed": false
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "key": "proteins",
+  "label": "Proteins",
+  "kind": "graph",
+  "figure": 12,
+  "rows": [
+   {
+    "label": "Reference",
+    "cells": [
+     {
+      "src": "proteins/reference_0.webp",
+      "failed": false
+     },
+     {
+      "src": "proteins/reference_1.webp",
+      "failed": false
+     },
+     {
+      "src": "proteins/reference_2.webp",
+      "failed": false
+     },
+     {
+      "src": "proteins/reference_3.webp",
+      "failed": false
+     },
+     {
+      "src": "proteins/reference_4.webp",
+      "failed": false
+     }
+    ]
+   },
+   {
+    "label": "SENT",
+    "cells": [
+     {
+      "src": "proteins/sent_0.webp",
+      "failed": false
+     },
+     {
+      "src": "proteins/sent_1.webp",
+      "failed": false
+     },
+     {
+      "src": "proteins/sent_2.webp",
+      "failed": false
+     },
+     {
+      "src": "proteins/sent_3.webp",
+      "failed": false
+     },
+     {
+      "src": "proteins/sent_4.webp",
+      "failed": false
+     }
+    ]
+   },
+   {
+    "label": "HDT-HAC-R",
+    "cells": [
+     {
+      "src": "proteins/hdt-hac-r_0.webp",
+      "failed": false
+     },
+     {
+      "src": "proteins/hdt-hac-r_1.webp",
+      "failed": false
+     },
+     {
+      "src": "proteins/hdt-hac-r_2.webp",
+      "failed": false
+     },
+     {
+      "src": "proteins/hdt-hac-r_3.webp",
+      "failed": false
+     },
+     {
+      "src": "proteins/hdt-hac-r_4.webp",
+      "failed": false
+     }
+    ]
+   },
+   {
+    "label": "HDT-HAC-FR",
+    "cells": [
+     {
+      "src": "proteins/hdt-hac-fr_0.webp",
+      "failed": false
+     },
+     {
+      "src": "proteins/hdt-hac-fr_1.webp",
+      "failed": false
+     },
+     {
+      "src": "proteins/hdt-hac-fr_2.webp",
+      "failed": false
+     },
+     {
+      "src": "proteins/hdt-hac-fr_3.webp",
+      "failed": false
+     },
+     {
+      "src": "proteins/hdt-hac-fr_4.webp",
+      "failed": false
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "key": "planar",
+  "label": "Planar",
+  "kind": "graph",
+  "figure": 13,
+  "rows": [
+   {
+    "label": "Reference",
+    "cells": [
+     {
+      "src": "planar/reference_0.webp",
+      "failed": false
+     },
+     {
+      "src": "planar/reference_1.webp",
+      "failed": false
+     },
+     {
+      "src": "planar/reference_2.webp",
+      "failed": false
+     },
+     {
+      "src": "planar/reference_3.webp",
+      "failed": false
+     },
+     {
+      "src": "planar/reference_4.webp",
+      "failed": false
+     }
+    ]
+   },
+   {
+    "label": "SENT",
+    "cells": [
+     {
+      "src": "planar/sent_0.webp",
+      "failed": false
+     },
+     {
+      "src": "planar/sent_1.webp",
+      "failed": false
+     },
+     {
+      "src": "planar/sent_2.webp",
+      "failed": false
+     },
+     {
+      "src": "planar/sent_3.webp",
+      "failed": false
+     },
+     {
+      "src": "planar/sent_4.webp",
+      "failed": false
+     }
+    ]
+   },
+   {
+    "label": "HDT-HAC-R",
+    "cells": [
+     {
+      "src": "planar/hdt-hac-r_0.webp",
+      "failed": false
+     },
+     {
+      "src": "planar/hdt-hac-r_1.webp",
+      "failed": false
+     },
+     {
+      "src": "planar/hdt-hac-r_2.webp",
+      "failed": false
+     },
+     {
+      "src": "planar/hdt-hac-r_3.webp",
+      "failed": false
+     },
+     {
+      "src": "planar/hdt-hac-r_4.webp",
+      "failed": false
+     }
+    ]
+   },
+   {
+    "label": "HDT-HAC-FR",
+    "cells": [
+     {
+      "src": "planar/hdt-hac-fr_0.webp",
+      "failed": false
+     },
+     {
+      "src": "planar/hdt-hac-fr_1.webp",
+      "failed": false
+     },
+     {
+      "src": "planar/hdt-hac-fr_2.webp",
+      "failed": false
+     },
+     {
+      "src": "planar/hdt-hac-fr_3.webp",
+      "failed": false
+     },
+     {
+      "src": "planar/hdt-hac-fr_4.webp",
+      "failed": false
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "key": "sbm",
+  "label": "SBM",
+  "kind": "graph",
+  "figure": 14,
+  "rows": [
+   {
+    "label": "Reference",
+    "cells": [
+     {
+      "src": "sbm/reference_0.webp",
+      "failed": false
+     },
+     {
+      "src": "sbm/reference_1.webp",
+      "failed": false
+     },
+     {
+      "src": "sbm/reference_2.webp",
+      "failed": false
+     },
+     {
+      "src": "sbm/reference_3.webp",
+      "failed": false
+     },
+     {
+      "src": "sbm/reference_4.webp",
+      "failed": false
+     }
+    ]
+   },
+   {
+    "label": "SENT",
+    "cells": [
+     {
+      "src": "sbm/sent_0.webp",
+      "failed": true
+     },
+     {
+      "src": "sbm/sent_1.webp",
+      "failed": true
+     },
+     {
+      "src": "sbm/sent_2.webp",
+      "failed": false
+     },
+     {
+      "src": "sbm/sent_3.webp",
+      "failed": false
+     },
+     {
+      "src": "sbm/sent_4.webp",
+      "failed": false
+     }
+    ]
+   },
+   {
+    "label": "HDT-HAC-R",
+    "cells": [
+     {
+      "src": "sbm/hdt-hac-r_0.webp",
+      "failed": false
+     },
+     {
+      "src": "sbm/hdt-hac-r_1.webp",
+      "failed": false
+     },
+     {
+      "src": "sbm/hdt-hac-r_2.webp",
+      "failed": false
+     },
+     {
+      "src": "sbm/hdt-hac-r_3.webp",
+      "failed": false
+     },
+     {
+      "src": "sbm/hdt-hac-r_4.webp",
+      "failed": false
+     }
+    ]
+   },
+   {
+    "label": "HDT-HAC-FR",
+    "cells": [
+     {
+      "src": "sbm/hdt-hac-fr_0.webp",
+      "failed": true
+     },
+     {
+      "src": "sbm/hdt-hac-fr_1.webp",
+      "failed": true
+     },
+     {
+      "src": "sbm/hdt-hac-fr_2.webp",
+      "failed": false
+     },
+     {
+      "src": "sbm/hdt-hac-fr_3.webp",
+      "failed": true
+     },
+     {
+      "src": "sbm/hdt-hac-fr_4.webp",
+      "failed": false
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "key": "ssbm",
+  "label": "Sparse SBM",
+  "kind": "graph",
+  "figure": 15,
+  "rows": [
+   {
+    "label": "Reference",
+    "cells": [
+     {
+      "src": "ssbm/reference_0.webp",
+      "failed": false
+     },
+     {
+      "src": "ssbm/reference_1.webp",
+      "failed": false
+     },
+     {
+      "src": "ssbm/reference_2.webp",
+      "failed": false
+     },
+     {
+      "src": "ssbm/reference_3.webp",
+      "failed": false
+     },
+     {
+      "src": "ssbm/reference_4.webp",
+      "failed": false
+     }
+    ]
+   },
+   {
+    "label": "SENT",
+    "cells": [
+     {
+      "src": "ssbm/sent_0.webp",
+      "failed": true
+     },
+     {
+      "src": "ssbm/sent_1.webp",
+      "failed": true
+     },
+     {
+      "src": "ssbm/sent_2.webp",
+      "failed": true
+     },
+     {
+      "src": "ssbm/sent_3.webp",
+      "failed": false
+     },
+     {
+      "src": "ssbm/sent_4.webp",
+      "failed": true
+     }
+    ]
+   },
+   {
+    "label": "HDT-HAC-R",
+    "cells": [
+     {
+      "src": "ssbm/hdt-hac-r_0.webp",
+      "failed": false
+     },
+     {
+      "src": "ssbm/hdt-hac-r_1.webp",
+      "failed": false
+     },
+     {
+      "src": "ssbm/hdt-hac-r_2.webp",
+      "failed": false
+     },
+     {
+      "src": "ssbm/hdt-hac-r_3.webp",
+      "failed": false
+     },
+     {
+      "src": "ssbm/hdt-hac-r_4.webp",
+      "failed": false
+     }
+    ]
+   },
+   {
+    "label": "HDT-HAC-FR",
+    "cells": [
+     {
+      "src": "ssbm/hdt-hac-fr_0.webp",
+      "failed": false
+     },
+     {
+      "src": "ssbm/hdt-hac-fr_1.webp",
+      "failed": false
+     },
+     {
+      "src": "ssbm/hdt-hac-fr_2.webp",
+      "failed": false
+     },
+     {
+      "src": "ssbm/hdt-hac-fr_3.webp",
+      "failed": false
+     },
+     {
+      "src": "ssbm/hdt-hac-fr_4.webp",
+      "failed": false
+     }
+    ]
+   }
+  ]
+ }
+]

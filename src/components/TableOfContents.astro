@@ -19,7 +19,7 @@ const { sections } = Astro.props;
   .toc-nav {
     position: fixed;
     top: 50%;
-    left: max(0.75rem, calc((100vw - 50rem) / 2 - 13rem));
+    left: 1rem;
     transform: translateY(-50%);
     width: 11rem;
     max-height: 80vh;
@@ -71,8 +71,8 @@ const { sections } = Astro.props;
     font-weight: 600;
   }
 
-  /* Hide on screens narrower than ~1200px (not enough room for sidebar) */
-  @media (max-width: 75rem) {
+  /* Hide unless the 64rem-wide column leaves room for the sidebar */
+  @media (max-width: 90rem) {
     .toc-nav {
       display: none;
     }
@@ -91,7 +91,7 @@ const { sections } = Astro.props;
     if (sections.length === 0) return;
 
     // Fade in after scrolling fully past the abstract (highlighted section)
-    const abstractSection = document.querySelector(".full-bleed");
+    const abstractSection = document.querySelector("header");
     if (abstractSection) {
       const abstractObserver = new IntersectionObserver(
         ([entry]) => {
