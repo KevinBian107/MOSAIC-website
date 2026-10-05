@@ -1,5 +1,26 @@
-<div
-  class="mx-[calc(max(var(--minimum-inline-margin),(100cqw-100rem)/2)-var(--actual-inline-margin))]"
->
-  <slot />
-</div>
+---
+/**
+ * A media block wider than the text column, with an omnimouse-style
+ * caption ("Figure N." in bold, italic grey body).
+ */
+interface Props {
+  n?: number | string;
+  title?: string;
+}
+const { n, title } = Astro.props;
+---
+
+<figure class="full-bleed not-prose my-8 sm:my-10">
+  <!-- 64rem minus padding = the text column width (--maximum-text-width). -->
+  <div class="mx-auto max-w-[64rem] px-6">
+    <slot />
+    {
+      (n || Astro.slots.has("caption")) && (
+        <figcaption class="mt-3 text-left text-sm leading-relaxed text-zinc-500 italic dark:text-zinc-400">
+          {n && <b class="not-italic text-zinc-700 dark:text-zinc-200">Figure {n}.</b>}{" "}
+          {title && <b class="not-italic text-zinc-700 dark:text-zinc-200">{title}</b>} <slot name="caption" />
+        </figcaption>
+      )
+    }
+  </div>
+</figure>

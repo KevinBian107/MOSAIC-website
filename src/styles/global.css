@@ -18,13 +18,31 @@
   width: 100%;
 }
 
+/* Pulse for the "current atom" marker in the playback figures. */
+@keyframes mosaic-pulse {
+  0%, 100% { transform: scale(0.8); opacity: 0.45; }
+  50% { transform: scale(1.15); opacity: 0.15; }
+}
+.mosaic-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mosaic-pulse 1.1s ease-in-out infinite;
+}
+
+/* Takeaway cards */
+.takeaway-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+
 html {
   /* Enables container query units (e.g., 100cqw) for layout calculations in main. */
   container-type: inline-size;
 }
 
 :root {
-  --maximum-text-width: 50rem;
+  --maximum-text-width: 61rem;
   --minimum-inline-margin: 1.5rem;
   --actual-inline-margin: max(
     var(--minimum-inline-margin),
@@ -250,4 +268,21 @@ main .katex-display {
   button {
     @apply cursor-pointer;
   }
+}
+
+/* Table 1 has long text cells: let it size columns to content and wrap. */
+.neurips-table.tok-table {
+  table-layout: auto;
+  max-width: 100%;
+}
+.neurips-table.tok-table thead th,
+.neurips-table.tok-table tbody td {
+  white-space: normal;
+  width: auto;
+  padding-inline: 0.6rem;
+  vertical-align: top;
+}
+.neurips-table.tok-table td:nth-child(5),
+.neurips-table.tok-table td:nth-child(6) {
+  white-space: nowrap;
 }
